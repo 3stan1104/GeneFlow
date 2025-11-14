@@ -91,16 +91,18 @@ function LoginPage({ onLoginSuccess, mode = 'light', onToggleMode }) {
                         onChange={(event) => setPassword(event.target.value)}
                         fullWidth
                         required
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <Tooltip title={showPassword ? 'Hide password' : 'Show password'}>
-                                        <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
-                                            {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                        </IconButton>
-                                    </Tooltip>
-                                </InputAdornment>
-                            ),
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <Tooltip title={showPassword ? 'Hide password' : 'Show password'}>
+                                            <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
+                                                {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                            </IconButton>
+                                        </Tooltip>
+                                    </InputAdornment>
+                                ),
+                            }
                         }}
                     />
 

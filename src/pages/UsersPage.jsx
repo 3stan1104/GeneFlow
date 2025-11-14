@@ -24,8 +24,7 @@ import {
     addDoc,
 } from 'firebase/firestore'
 import { db } from '../firebase'
-
-const ADMIN_API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'https://geneflow-letran.vercel.app/api'
+const ADMIN_API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'https://geneflow-letran.vercel.app'
 
 function UsersPage() {
     const [users, setUsers] = useState([])

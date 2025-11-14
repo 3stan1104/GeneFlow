@@ -15,6 +15,7 @@
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.5",
     "@mui/x-data-grid": "^8.18.0",
+    "@vercel/functions": "^3.3.2",
     "express": "^5.1.0",
     "firebase": "^12.4.0",
     "firebase-admin": "^13.6.0",
