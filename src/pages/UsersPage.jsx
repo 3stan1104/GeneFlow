@@ -1,28 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-    Alert,
-    Box,
-    Button,
-    Chip,
-    Paper,
-    Stack,
-    Typography,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    IconButton,
-    Snackbar,
+    Alert, Box, Button, Chip, Paper, Stack, Typography, Dialog, DialogTitle,
+    DialogContent, DialogActions, TextField, IconButton, Snackbar,
 } from '@mui/material'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
-import {
-    collection,
-    addDoc,
-} from 'firebase/firestore'
+import { collection, addDoc, } from 'firebase/firestore'
 import { db } from '../firebase'
 const ADMIN_API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'https://geneflow-letran.vercel.app'
 
@@ -32,6 +18,21 @@ function UsersPage() {
     const [error, setError] = useState('')
     const [open, setOpen] = useState(false)
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' })
+
+    const handleDelete = useCallback(async (uid) => {
+        if (!window.confirm('Are you sure you want to delete this user?')) return
+        try {
+            const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/delete?uid=${uid}`, {
+                method: 'DELETE',
+            })
+            if (!response.ok) throw new Error('Failed to delete user')
+            setSnackbar({ open: true, message: 'User deleted successfully', severity: 'success' })
+            fetchUsers()
+        } catch (err) {
+            console.error('Failed to delete user', err)
+            setSnackbar({ open: true, message: 'Failed to delete user', severity: 'error' })
+        }
+    }, [fetchUsers])
 
     const columns = useMemo(
         () => [
@@ -61,15 +62,32 @@ function UsersPage() {
                     return date.toLocaleString()
                 },
             },
+            {
+                field: 'actions',
+                headerName: 'Actions',
+                flex: 0.4,
+                minWidth: 100,
+                sortable: false,
+                renderCell: (params) => (
+                    <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDelete(params.row.id)}
+                        aria-label="delete user"
+                    >
+                        <DeleteIcon fontSize="small" />
+                    </IconButton>
+                ),
+            },
         ],
-        [],
+        [handleDelete],
     )
 
     const fetchUsers = useCallback(async () => {
         setLoading(true)
         setError('')
         try {
-            const response = await fetch(`${ADMIN_API_BASE_URL}/api/users`)
+            const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/getAll`)
             if (!response.ok) {
                 throw new Error(`Request failed with status ${response.status}`)
             }

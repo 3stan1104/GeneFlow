@@ -1,22 +1,8 @@
 import { useMemo, useState } from 'react'
 import {
-  ThemeProvider,
-  createTheme,
-  CssBaseline,
-  Box,
-  AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Drawer,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-  Tooltip,
-  Button,
-  CircularProgress,
+  ThemeProvider, createTheme, CssBaseline, Box, AppBar, Toolbar, Typography,
+  IconButton, Drawer, List, ListItemButton, ListItemIcon, ListItemText,
+  Divider, Tooltip, Button, CircularProgress,
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
@@ -39,13 +25,8 @@ const navItems = [
 
 function App() {
   const {
-    user,
-    setUser,
-    initializing,
-    themeMode,
-    toggleThemeMode,
-    activePage,
-    setActivePage,
+    user, setUser, initializing, themeMode,
+    toggleThemeMode, activePage, setActivePage,
   } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
 

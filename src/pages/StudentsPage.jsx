@@ -1,15 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-    Alert,
-    Box,
-    Card,
-    CardContent,
-    Chip,
-    CircularProgress,
-    LinearProgress,
-    Stack,
-    Typography,
-    Grid
+    Alert, Box, Card, CardContent, Chip, CircularProgress,
+    LinearProgress, Stack, Typography, Grid
 } from '@mui/material'
 import { collection, getDocs, query, orderBy } from 'firebase/firestore'
 import SchoolIcon from '@mui/icons-material/School'
