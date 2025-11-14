@@ -9,8 +9,6 @@ import CloseIcon from '@mui/icons-material/Close'
 import DeleteIcon from '@mui/icons-material/Delete'
 import LockResetIcon from '@mui/icons-material/LockReset'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
-import { collection, addDoc, } from 'firebase/firestore'
-import { db } from '../firebase'
 const ADMIN_API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'https://geneflow-letran.vercel.app'
 
 function UsersPage() {
@@ -31,7 +29,12 @@ function UsersPage() {
             const payload = await response.json()
             const mappedUsers = (payload.users || []).map((user) => ({
                 id: user.uid,
+                studentNumber: user.uid,
                 email: user.email,
+                displayName: user.displayName || null,
+                firstName: user.firstName || null,
+                middleName: user.middleName || null,
+                lastName: user.lastName || null,
                 emailVerified: user.emailVerified,
                 disabled: user.disabled,
                 status: user.status,
@@ -54,8 +57,11 @@ function UsersPage() {
                 method: 'DELETE',
             })
             if (!response.ok) throw new Error('Failed to delete user')
+            // Optimistically remove the row so the UI updates immediately
+            setUsers((prev) => prev.filter((r) => r.id !== uid))
             setSnackbar({ open: true, message: 'User deleted successfully', severity: 'success' })
-            fetchUsers()
+            // Ensure we refresh from server to keep state in sync
+            await fetchUsers()
         } catch (err) {
             console.error('Failed to delete user', err)
             setSnackbar({ open: true, message: 'Failed to delete user', severity: 'error' })
@@ -82,6 +88,11 @@ function UsersPage() {
     const columns = useMemo(
         () => [
             { field: 'email', headerName: 'Email', flex: 1.5, minWidth: 240 },
+            { field: 'displayName', headerName: 'Display Name', flex: 1, minWidth: 180 },
+            { field: 'studentNumber', headerName: 'Student Number', flex: 0.8, minWidth: 140 },
+            { field: 'firstName', headerName: 'First Name', flex: 0.7, minWidth: 140 },
+            { field: 'middleName', headerName: 'Middle Name', flex: 0.6, minWidth: 120 },
+            { field: 'lastName', headerName: 'Last Name', flex: 0.8, minWidth: 160 },
             {
                 field: 'status',
                 headerName: 'Status',
@@ -93,26 +104,27 @@ function UsersPage() {
                     return <Chip size="small" color={color} label={status.replace(/^./, (c) => c.toUpperCase())} />
                 },
             },
-            {
-                field: 'emailVerified',
-                headerName: 'Verified',
-                flex: 0.4,
-                minWidth: 100,
-                renderCell: (params) => (
-                    <Chip
-                        size="small"
-                        color={params.value ? 'success' : 'default'}
-                        label={params.value ? 'Yes' : 'No'}
-                    />
-                ),
-            },
+            // {
+            //     field: 'emailVerified',
+            //     headerName: 'Verified',
+            //     flex: 0.4,
+            //     minWidth: 100,
+            //     renderCell: (params) => (
+            //         <Chip
+            //             size="small"
+            //             color={params.value ? 'success' : 'default'}
+            //             label={params.value ? 'Yes' : 'No'}
+            //         />
+            //     ),
+            // },
             {
                 field: 'lastLogin',
                 headerName: 'Last Login',
                 flex: 0.8,
                 minWidth: 180,
                 valueFormatter: (params) => {
-                    if (!params.value) return '—'
+                    // Defensive: params can be null in some DataGrid internal calls
+                    if (!params || params.value == null) return '—'
                     const date = new Date(params.value)
                     if (Number.isNaN(date.getTime())) return '—'
                     return date.toLocaleString()
@@ -171,7 +183,7 @@ function UsersPage() {
                         Refresh
                     </Button>
                     <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
-                        Add Student
+                        Add User
                     </Button>
                 </Stack>
             </Stack>
@@ -192,7 +204,7 @@ function UsersPage() {
             </Paper>
 
             {/* Add Student Dialog */}
-            <AddStudentDialog openStateHook={[open, setOpen]} onAdded={() => setSnackbar({ open: true, message: 'Student added', severity: 'success' })} />
+            <AddStudentDialog openStateHook={[open, setOpen]} onAdded={() => setSnackbar({ open: true, message: 'User added', severity: 'success' })} fetchUsers={fetchUsers} />
 
             {/* Snackbar feedback */}
             <SnackbarController snackbarStateHook={[snackbar, setSnackbar]} />
@@ -202,31 +214,64 @@ function UsersPage() {
 
 export default UsersPage
 
-function AddStudentDialog({ openStateHook, onAdded }) {
+function AddStudentDialog({ openStateHook, onAdded, fetchUsers }) {
     const [open, setOpen] = openStateHook
-    const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
+    const [displayName, setDisplayName] = useState('')
     const [studentNumber, setStudentNumber] = useState('')
+    const [firstName, setFirstName] = useState('')
+    const [middleName, setMiddleName] = useState('')
+    const [lastName, setLastName] = useState('')
+    const [password, setPassword] = useState('')
     const [submitting, setSubmitting] = useState(false)
 
     const handleClose = () => setOpen(false)
 
     const handleSubmit = async () => {
-        if (!name.trim()) return
+        if (!email.trim() || !displayName.trim() || !password.trim()) return
         setSubmitting(true)
         try {
-            await addDoc(collection(db, 'students'), {
-                name: name.trim(),
-                studentNumber: studentNumber.trim() || null,
-                progress: 0,
-                score: 0,
-                createdAt: new Date(),
+            const body = {
+                email: email.trim(),
+                password: password.trim(),
+                displayName: displayName.trim(),
+                firstName: firstName.trim() || null,
+                middleName: middleName.trim() || null,
+                lastName: lastName.trim() || null,
+                uid: studentNumber.trim() || undefined,
+            }
+
+            const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
             })
-            setName('')
-            setStudentNumber('')
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => null)
+                const message = err?.error || err?.message || 'Failed to create user'
+                setSnackbar({ open: true, message, severity: 'error' })
+                throw new Error(message)
+            }
+
+            const data = await response.json().catch(() => null)
+            setEmail('')
+            setDisplayName('')
+            setFirstName('')
+            setMiddleName('')
+            setLastName('')
+            setPassword('')
             setOpen(false)
+            setSnackbar({ open: true, message: 'User created', severity: 'success' })
             onAdded?.()
+            // refresh list via provided function
+            try {
+                if (typeof fetchUsers === 'function') await fetchUsers()
+            } catch (fetchErr) {
+                console.error('Failed to refresh users after create', fetchErr)
+            }
         } catch (err) {
-            console.error('Failed to add student', err)
+            console.error('Failed to create user', err)
         } finally {
             setSubmitting(false)
         }
@@ -235,24 +280,31 @@ function AddStudentDialog({ openStateHook, onAdded }) {
     return (
         <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
             <DialogTitle>
-                Add Student
+                Create User
                 <IconButton aria-label="close" onClick={handleClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>
-                    <TextField label="Full name" value={name} onChange={(e) => setName(e.target.value)} fullWidth required />
-                    <TextField label="Student Number" value={studentNumber} onChange={(e) => setStudentNumber(e.target.value)} fullWidth />
+                    <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth required />
+                    <TextField label="Display Name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} fullWidth required />
+                    <TextField label="Student Number" value={studentNumber} onChange={(e) => setStudentNumber(e.target.value)} fullWidth helperText="Optional: set internal UID (e.g. student number)" />
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                        <TextField label="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} fullWidth />
+                        <TextField label="Middle Name" value={middleName} onChange={(e) => setMiddleName(e.target.value)} fullWidth />
+                        <TextField label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} fullWidth />
+                    </Stack>
+                    <TextField label="Temporary Password" value={password} onChange={(e) => setPassword(e.target.value)} fullWidth required type="password" />
                     <Typography variant="caption" color="text.secondary">
-                        Progress and score start at 0 and update automatically as students advance.
+                        A temporary password is required so the user can sign in and reset their password.
                     </Typography>
                 </Stack>
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleClose} disabled={submitting}>Cancel</Button>
-                <Button onClick={handleSubmit} variant="contained" disabled={submitting || !name.trim()}>
-                    {submitting ? 'Saving…' : 'Add Student'}
+                <Button onClick={handleSubmit} variant="contained" disabled={submitting || !email.trim() || !displayName.trim() || !password.trim()}>
+                    {submitting ? 'Creating…' : 'Create User'}
                 </Button>
             </DialogActions>
         </Dialog>

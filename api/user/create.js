@@ -10,23 +10,41 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { email, password, displayName } = req.body
+        const { email, password, displayName, firstName, middleName, lastName, uid } = req.body || {}
 
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' })
+        if (!email || !password || !displayName) {
+            return res.status(400).json({ error: 'email, password and displayName are required' })
         }
 
         const auth = getAdminAuth()
-        const userRecord = await auth.createUser({
+        const createPayload = {
             email,
             password,
             displayName: displayName || null,
-        })
+        }
+        if (uid) createPayload.uid = uid
+
+        const userRecord = await auth.createUser(createPayload)
+
+        // Set custom claims for name parts (top-level keys)
+        const customClaims = {
+            firstName: firstName || null,
+            middleName: middleName || null,
+            lastName: lastName || null,
+        }
+
+        try {
+            await auth.setCustomUserClaims(userRecord.uid, customClaims)
+        } catch (claimErr) {
+            // Log but don't fail the whole request; return user created but warn
+            console.error('Failed to set custom claims for user', userRecord.uid, claimErr)
+        }
 
         return res.status(201).json({
             uid: userRecord.uid,
             email: userRecord.email,
             displayName: userRecord.displayName,
+            customClaims,
         })
     } catch (error) {
         console.error('Failed to create user', error)

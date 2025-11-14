@@ -60,7 +60,7 @@ function LoginPage({ onLoginSuccess, mode = 'light', onToggleMode }) {
                             GeneFlow Portal
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Sign in with your researcher credentials to continue.
+                            Sign in with your credentials to continue.
                         </Typography>
                     </Stack>
 

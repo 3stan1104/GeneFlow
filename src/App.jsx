@@ -75,7 +75,7 @@ function App() {
           GeneFlow
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Research Dashboard
+          Teacher Dashboard
         </Typography>
       </Box>
       <Divider />

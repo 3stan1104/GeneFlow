@@ -26,14 +26,17 @@ export default async function handler(req, res) {
         const payload = users.map((userRecord) => ({
             uid: userRecord.uid,
             email: userRecord.email || 'No email',
+            displayName: userRecord.displayName || null,
             emailVerified: userRecord.emailVerified || false,
             disabled: userRecord.disabled || false,
             status: userRecord.disabled ? 'disabled' : 'active',
             lastLogin: userRecord.metadata?.lastSignInTime || null,
             createdAt: userRecord.metadata?.creationTime || null,
+            // custom claims name parts as top-level keys
+            firstName: userRecord.customClaims?.firstName || null,
+            middleName: userRecord.customClaims?.middleName || null,
+            lastName: userRecord.customClaims?.lastName || null,
         }))
-
-        res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30')
         return res.status(200).json({ users: payload })
     } catch (error) {
         console.error('Failed to fetch users from admin SDK', error)
