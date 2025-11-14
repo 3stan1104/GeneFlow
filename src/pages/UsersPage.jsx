@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
     Alert, Box, Button, Chip, Paper, Stack, Typography, Dialog, DialogTitle,
-    DialogContent, DialogActions, TextField, IconButton, Snackbar,
+    DialogContent, DialogActions, TextField, IconButton, Snackbar, MenuItem,
 } from '@mui/material'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import AddIcon from '@mui/icons-material/Add'
@@ -32,6 +32,7 @@ function UsersPage() {
                 studentNumber: user.uid,
                 email: user.email,
                 displayName: user.displayName || null,
+                role: user.role || null,
                 firstName: user.firstName || null,
                 middleName: user.middleName || null,
                 lastName: user.lastName || null,
@@ -131,28 +132,42 @@ function UsersPage() {
                 },
             },
             {
+                field: 'role',
+                headerName: 'Role',
+                flex: 0.5,
+                minWidth: 120,
+                renderCell: (params) => {
+                    const role = (params.value || '').toString()
+                    const name = role ? role.replace(/^./, (c) => c.toUpperCase()) : '—'
+                    const color = role.toLowerCase() === 'admin' ? 'warning' : role.toLowerCase() === 'student' ? 'info' : 'default'
+                    return <Chip size="small" color={color} label={name} />
+                },
+            },
+            {
                 field: 'actions',
                 headerName: 'Actions',
-                flex: 0.6,
-                minWidth: 120,
+                flex: 0.9,
+                minWidth: 100,
                 sortable: false,
                 renderCell: (params) => (
-                    <Stack direction="row" spacing={0.5}>
+                    <Stack direction="row" spacing={1} sx={{ width: '100%', justifyContent: 'center', alignItems: 'center', pr: 1 }}>
                         <IconButton
-                            size="small"
+                            size="medium"
                             color="primary"
                             onClick={() => handleResetPassword(params.row.email)}
                             aria-label="reset password"
                             title="Send password reset link"
+                            sx={{ p: 1.25 }}
                         >
                             <LockResetIcon fontSize="small" />
                         </IconButton>
                         <IconButton
-                            size="small"
+                            size="medium"
                             color="error"
                             onClick={() => handleDelete(params.row.id)}
                             aria-label="delete user"
                             title="Delete user"
+                            sx={{ p: 1.25 }}
                         >
                             <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -223,6 +238,7 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers }) {
     const [middleName, setMiddleName] = useState('')
     const [lastName, setLastName] = useState('')
     const [password, setPassword] = useState('')
+    const [role, setRole] = useState('student')
     const [submitting, setSubmitting] = useState(false)
 
     const handleClose = () => setOpen(false)
@@ -239,6 +255,7 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers }) {
                 middleName: middleName.trim() || null,
                 lastName: lastName.trim() || null,
                 uid: studentNumber.trim() || undefined,
+                role: role || 'student',
             }
 
             const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/create`, {
@@ -261,6 +278,7 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers }) {
             setMiddleName('')
             setLastName('')
             setPassword('')
+            setRole('student')
             setOpen(false)
             setSnackbar({ open: true, message: 'User created', severity: 'success' })
             onAdded?.()
@@ -295,6 +313,17 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers }) {
                         <TextField label="Middle Name" value={middleName} onChange={(e) => setMiddleName(e.target.value)} fullWidth />
                         <TextField label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} fullWidth />
                     </Stack>
+                    <TextField
+                        select
+                        label="Role"
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                        fullWidth
+                        helperText="Select the role for this user"
+                    >
+                        <MenuItem value="student">Student</MenuItem>
+                        <MenuItem value="admin">Admin</MenuItem>
+                    </TextField>
                     <TextField label="Temporary Password" value={password} onChange={(e) => setPassword(e.target.value)} fullWidth required type="password" />
                     <Typography variant="caption" color="text.secondary">
                         A temporary password is required so the user can sign in and reset their password.

@@ -36,6 +36,8 @@ export default async function handler(req, res) {
             firstName: userRecord.customClaims?.firstName || null,
             middleName: userRecord.customClaims?.middleName || null,
             lastName: userRecord.customClaims?.lastName || null,
+            // role (e.g. 'student', 'admin') if present in custom claims
+            role: userRecord.customClaims?.role || null,
         }))
         return res.status(200).json({ users: payload })
     } catch (error) {
