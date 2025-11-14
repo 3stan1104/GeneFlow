@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import {
   ThemeProvider, createTheme, CssBaseline, Box, AppBar, Toolbar, Typography,
   IconButton, Drawer, List, ListItemButton, ListItemIcon, ListItemText,
@@ -19,16 +20,18 @@ import { useSession } from './context/SessionContext'
 
 const drawerWidth = 260
 const navItems = [
-  { id: 'students', label: 'Student Progress', icon: <SchoolIcon fontSize="small" /> },
-  { id: 'users', label: 'Manage Users', icon: <GroupIcon fontSize="small" /> },
+  { id: 'students', label: 'Student Progress', icon: <SchoolIcon fontSize="small" />, path: '/students' },
+  { id: 'users', label: 'Manage Users', icon: <GroupIcon fontSize="small" />, path: '/users' },
 ]
 
 function App() {
   const {
     user, setUser, initializing, themeMode,
-    toggleThemeMode, activePage, setActivePage,
+    toggleThemeMode,
   } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const theme = useMemo(
     () =>
@@ -56,23 +59,13 @@ function App() {
     } catch (error) {
       console.error('Failed to sign out', error)
     }
-    setActivePage('students')
+    navigate('/students')
   }
 
   const handleDrawerToggle = () => setMobileOpen((prev) => !prev)
-  const handleNavClick = (page) => {
-    setActivePage(page)
+  const handleNavClick = (path) => {
+    navigate(path)
     setMobileOpen(false)
-  }
-
-  const renderActivePage = () => {
-    switch (activePage) {
-      case 'users':
-        return <UsersPage />
-      case 'students':
-      default:
-        return <StudentsPage />
-    }
   }
 
   const drawer = (
@@ -90,8 +83,8 @@ function App() {
         {navItems.map((item) => (
           <ListItemButton
             key={item.id}
-            selected={activePage === item.id}
-            onClick={() => handleNavClick(item.id)}
+            selected={location.pathname === item.path}
+            onClick={() => handleNavClick(item.path)}
             sx={{ borderRadius: 2, mx: 1, my: 0.5 }}
           >
             <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
@@ -183,7 +176,11 @@ function App() {
               mt: 8,
             }}
           >
-            {renderActivePage()}
+            <Routes>
+              <Route path="/students" element={<StudentsPage />} />
+              <Route path="/users" element={<UsersPage />} />
+              <Route path="/" element={<Navigate to="/students" replace />} />
+            </Routes>
           </Box>
         </Box>
       )}
