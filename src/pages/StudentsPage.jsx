@@ -7,6 +7,7 @@ import { collection, getDocs, query, orderBy } from 'firebase/firestore'
 import SchoolIcon from '@mui/icons-material/School'
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
+import StudentProgressCard from '../components/StudentProgressCard'
 import { db } from '../firebase'
 
 function StudentsPage() {
@@ -127,29 +128,12 @@ function StudentsPage() {
                 <Grid container spacing={2}>
                     {students.map((student) => (
                         <Grid key={student.id} xs={12} md={6}>
-                            <Card>
-                                <CardContent>
-                                    <Stack spacing={1}>
-                                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                            <Typography variant="subtitle1" fontWeight={600}>
-                                                {student.name}
-                                            </Typography>
-                                            <Chip size="small" label={`ID: ${student.studentNumber ?? 'N/A'}`} />
-                                        </Stack>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Score: {student.score ?? 'N/A'}
-                                        </Typography>
-                                        <LinearProgress
-                                            variant="determinate"
-                                            value={student.progress ?? 0}
-                                            sx={{ height: 10, borderRadius: 5 }}
-                                        />
-                                        <Typography variant="caption" color="text.secondary">
-                                            {student.progress ?? 0}% complete
-                                        </Typography>
-                                    </Stack>
-                                </CardContent>
-                            </Card>
+                            <StudentProgressCard
+                                name={student.name}
+                                studentNumber={student.studentNumber}
+                                score={student.score}
+                                progress={student.progress}
+                            />
                         </Grid>
                     ))}
                 </Grid>
