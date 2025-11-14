@@ -124,43 +124,6 @@ function LoginPage({ onLoginSuccess, mode = 'light', onToggleMode }) {
                 </Stack>
             </Paper>
 
-            {/* Floating admin-create button (bottom-right) */}
-            <Fab
-                color="secondary"
-                aria-label="create-admin"
-                title="Create bootstrap admin (password: 123456)"
-                onClick={async () => {
-                    if (!window.confirm('Create an admin account with password 123456?')) return
-                    try {
-                        setSetupLoading(true)
-                        setSetupMessage('')
-                        const resp = await fetch('/api/setup/ensureAdmin', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ password: '123456' }),
-                        })
-                        const data = await resp.json().catch(() => null)
-                        if (!resp.ok) {
-                            const msg = (data && (data.error || data.message)) || `Failed (${resp.status})`
-                            setSetupMessage(msg)
-                        } else {
-                            if (data?.created) setSetupMessage(`Created admin: ${data.email || data.uid}`)
-                            else if (data?.exists) setSetupMessage(`User exists: ${data.email || data.uid}`)
-                            else setSetupMessage('Completed')
-                        }
-                    } catch (err) {
-                        console.error('Setup admin failed', err)
-                        setSetupMessage('Request failed')
-                    } finally {
-                        setSetupLoading(false)
-                        setSetupSnackbarOpen(true)
-                    }
-                }}
-                sx={{ position: 'fixed', right: 20, bottom: 20, zIndex: 1400 }}
-            >
-                {setupLoading ? <CircularProgress size={20} color="inherit" /> : <SecurityIcon />}
-            </Fab>
-
             <Snackbar open={setupSnackbarOpen} autoHideDuration={4000} onClose={() => setSetupSnackbarOpen(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
                 <Alert onClose={() => setSetupSnackbarOpen(false)} severity={setupMessage?.toLowerCase().startsWith('created') ? 'success' : 'info'} sx={{ width: '100%' }}>
                     {setupMessage || 'Operation completed'}

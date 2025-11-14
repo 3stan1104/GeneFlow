@@ -31,9 +31,9 @@ export default async function handler(req, res) {
 
     // Authenticate request
     const authContext = await authenticateRequest(req)
-    // if (!authContext) {
-    //     return res.status(401).json({ error: 'Unauthorized: Provide a valid Bearer token or X-API-Secret' })
-    // }
+    if (!authContext) {
+        return res.status(401).json({ error: 'Unauthorized: Provide a valid Bearer token or X-API-Secret' })
+    }
 
     try {
         const { email: rawEmail, password: rawPassword, displayName, firstName, middleName, lastName, uid: customUid, role } = req.body || {}
