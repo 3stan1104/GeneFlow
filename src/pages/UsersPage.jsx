@@ -7,6 +7,7 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
 import DeleteIcon from '@mui/icons-material/Delete'
+import LockResetIcon from '@mui/icons-material/LockReset'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import { collection, addDoc, } from 'firebase/firestore'
 import { db } from '../firebase'
@@ -34,27 +35,55 @@ function UsersPage() {
         }
     }, [fetchUsers])
 
+    const handleResetPassword = useCallback(async (email) => {
+        try {
+            const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/resetPassword`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            })
+            if (!response.ok) throw new Error('Failed to generate reset link')
+            const data = await response.json()
+            setSnackbar({ open: true, message: 'Password reset link generated', severity: 'success' })
+            console.log('Reset link:', data.resetLink)
+        } catch (err) {
+            console.error('Failed to reset password', err)
+            setSnackbar({ open: true, message: 'Failed to generate reset link', severity: 'error' })
+        }
+    }, [])
+
     const columns = useMemo(
         () => [
-            { field: 'name', headerName: 'Full Name', flex: 1, minWidth: 180 },
-            { field: 'email', headerName: 'Email', flex: 1.1, minWidth: 220 },
-            { field: 'role', headerName: 'Role', flex: 0.6, minWidth: 140 },
+            { field: 'email', headerName: 'Email', flex: 1.5, minWidth: 240 },
             {
                 field: 'status',
                 headerName: 'Status',
                 flex: 0.5,
-                minWidth: 140,
+                minWidth: 120,
                 renderCell: (params) => {
-                    const status = (params.value ?? 'inactive').toLowerCase()
-                    const color = status === 'active' ? 'success' : status === 'pending' ? 'warning' : 'default'
+                    const status = (params.value ?? 'active').toLowerCase()
+                    const color = status === 'active' ? 'success' : status === 'disabled' ? 'error' : 'default'
                     return <Chip size="small" color={color} label={status.replace(/^./, (c) => c.toUpperCase())} />
                 },
+            },
+            {
+                field: 'emailVerified',
+                headerName: 'Verified',
+                flex: 0.4,
+                minWidth: 100,
+                renderCell: (params) => (
+                    <Chip
+                        size="small"
+                        color={params.value ? 'success' : 'default'}
+                        label={params.value ? 'Yes' : 'No'}
+                    />
+                ),
             },
             {
                 field: 'lastLogin',
                 headerName: 'Last Login',
                 flex: 0.8,
-                minWidth: 200,
+                minWidth: 180,
                 valueFormatter: (params) => {
                     if (!params.value) return '—'
                     const date = new Date(params.value)
@@ -65,22 +94,34 @@ function UsersPage() {
             {
                 field: 'actions',
                 headerName: 'Actions',
-                flex: 0.4,
-                minWidth: 100,
+                flex: 0.6,
+                minWidth: 120,
                 sortable: false,
                 renderCell: (params) => (
-                    <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDelete(params.row.id)}
-                        aria-label="delete user"
-                    >
-                        <DeleteIcon fontSize="small" />
-                    </IconButton>
+                    <Stack direction="row" spacing={0.5}>
+                        <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleResetPassword(params.row.email)}
+                            aria-label="reset password"
+                            title="Send password reset link"
+                        >
+                            <LockResetIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDelete(params.row.id)}
+                            aria-label="delete user"
+                            title="Delete user"
+                        >
+                            <DeleteIcon fontSize="small" />
+                        </IconButton>
+                    </Stack>
                 ),
             },
         ],
-        [handleDelete],
+        [handleDelete, handleResetPassword],
     )
 
     const fetchUsers = useCallback(async () => {
@@ -94,11 +135,12 @@ function UsersPage() {
             const payload = await response.json()
             const mappedUsers = (payload.users || []).map((user) => ({
                 id: user.uid,
-                name: user.name,
                 email: user.email,
-                role: user.role,
+                emailVerified: user.emailVerified,
+                disabled: user.disabled,
                 status: user.status,
                 lastLogin: user.lastLogin,
+                createdAt: user.createdAt,
             }))
             setUsers(mappedUsers)
         } catch (err) {

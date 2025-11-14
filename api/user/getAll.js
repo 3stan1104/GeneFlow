@@ -25,11 +25,12 @@ export default async function handler(req, res) {
         const users = await listAllUsers(auth)
         const payload = users.map((userRecord) => ({
             uid: userRecord.uid,
-            name: userRecord.displayName || 'Unnamed User',
             email: userRecord.email || 'No email',
-            role: userRecord.customClaims?.role || 'member',
+            emailVerified: userRecord.emailVerified || false,
+            disabled: userRecord.disabled || false,
             status: userRecord.disabled ? 'disabled' : 'active',
             lastLogin: userRecord.metadata?.lastSignInTime || null,
+            createdAt: userRecord.metadata?.creationTime || null,
         }))
 
         res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30')
