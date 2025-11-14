@@ -20,6 +20,33 @@ function UsersPage() {
     const [open, setOpen] = useState(false)
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' })
 
+    const fetchUsers = useCallback(async () => {
+        setLoading(true)
+        setError('')
+        try {
+            const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/getAll`)
+            if (!response.ok) {
+                throw new Error(`Request failed with status ${response.status}`)
+            }
+            const payload = await response.json()
+            const mappedUsers = (payload.users || []).map((user) => ({
+                id: user.uid,
+                email: user.email,
+                emailVerified: user.emailVerified,
+                disabled: user.disabled,
+                status: user.status,
+                lastLogin: user.lastLogin,
+                createdAt: user.createdAt,
+            }))
+            setUsers(mappedUsers)
+        } catch (err) {
+            console.error('Failed to load users', err)
+            setError('Unable to fetch users from the admin service right now.')
+        } finally {
+            setLoading(false)
+        }
+    }, [])
+
     const handleDelete = useCallback(async (uid) => {
         if (!window.confirm('Are you sure you want to delete this user?')) return
         try {
@@ -123,33 +150,6 @@ function UsersPage() {
         ],
         [handleDelete, handleResetPassword],
     )
-
-    const fetchUsers = useCallback(async () => {
-        setLoading(true)
-        setError('')
-        try {
-            const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/getAll`)
-            if (!response.ok) {
-                throw new Error(`Request failed with status ${response.status}`)
-            }
-            const payload = await response.json()
-            const mappedUsers = (payload.users || []).map((user) => ({
-                id: user.uid,
-                email: user.email,
-                emailVerified: user.emailVerified,
-                disabled: user.disabled,
-                status: user.status,
-                lastLogin: user.lastLogin,
-                createdAt: user.createdAt,
-            }))
-            setUsers(mappedUsers)
-        } catch (err) {
-            console.error('Failed to load users', err)
-            setError('Unable to fetch users from the admin service right now.')
-        } finally {
-            setLoading(false)
-        }
-    }, [])
 
     useEffect(() => {
         fetchUsers()
