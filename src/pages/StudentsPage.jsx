@@ -65,7 +65,9 @@ function StudentsPage() {
                     <Card sx={{ height: '100%' }}>
                         <CardContent>
                             <Stack direction="row" spacing={2} alignItems="center">
-                                <SchoolIcon color="primary" />
+                                <Box sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', borderRadius: '50%', p: 1.25, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
+                                    <SchoolIcon fontSize="medium" />
+                                </Box>
                                 <Box>
                                     <Typography variant="overline" color="text.secondary">
                                         Total Students
@@ -82,7 +84,9 @@ function StudentsPage() {
                     <Card sx={{ height: '100%' }}>
                         <CardContent>
                             <Stack direction="row" spacing={2} alignItems="center">
-                                <TrendingUpIcon color="primary" />
+                                <Box sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', borderRadius: '50%', p: 1.25, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
+                                    <TrendingUpIcon fontSize="medium" />
+                                </Box>
                                 <Box>
                                     <Typography variant="overline" color="text.secondary">
                                         Average Progress
@@ -99,7 +103,9 @@ function StudentsPage() {
                     <Card sx={{ height: '100%' }}>
                         <CardContent>
                             <Stack direction="row" spacing={2} alignItems="center">
-                                <EmojiEventsIcon color="primary" />
+                                <Box sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', borderRadius: '50%', p: 1.25, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
+                                    <EmojiEventsIcon fontSize="medium" />
+                                </Box>
                                 <Box>
                                     <Typography variant="overline" color="text.secondary">
                                         Average Score
@@ -116,7 +122,7 @@ function StudentsPage() {
 
             <Stack spacing={2}>
                 <Typography variant="h6" fontWeight={700}>
-                    Cohort Overview
+                    Progress Overview
                 </Typography>
                 <Grid container spacing={2}>
                     {students.map((student) => (

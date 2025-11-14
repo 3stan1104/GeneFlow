@@ -175,7 +175,7 @@ function UsersPage() {
                         Manage Users
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Track collaborator access, roles, and status in real time.
+                        View, add, and manage user accounts
                     </Typography>
                 </Box>
                 <Stack direction="row" spacing={1}>
