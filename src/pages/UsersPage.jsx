@@ -25,7 +25,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 
-const ADMIN_API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'http://localhost:3000'
+const ADMIN_API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'https://geneflow-letran.vercel.app/api'
 
 function UsersPage() {
     const [users, setUsers] = useState([])
