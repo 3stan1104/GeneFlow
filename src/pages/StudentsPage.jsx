@@ -125,13 +125,13 @@ function StudentsPage() {
                 <Typography variant="h6" fontWeight={700}>
                     Progress Overview
                 </Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} alignItems="stretch">
                     {students.map((student) => {
                         const nameObj = student.name || {}
                         const fullName = [nameObj.first, nameObj.middle, nameObj.last].filter(Boolean).join(' ').trim() || student.name || 'Unnamed'
                         const studentNumber = student.studentNumber || student.id
                         return (
-                            <Grid key={student.id} xs={12} md={6}>
+                            <Grid key={student.id} xs={12} sm={6} md={4} sx={{ display: 'flex' }}>
                                 <StudentProgressCard
                                     name={fullName}
                                     studentNumber={studentNumber}
