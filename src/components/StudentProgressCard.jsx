@@ -7,7 +7,7 @@ export default function StudentProgressCard({ name = 'Unnamed', studentNumber = 
     const pct = typeof progress === 'number' ? Math.max(0, Math.min(100, Math.round(progress))) : 0
 
     return (
-        <Card elevation={2} sx={{ height: '100%' }}>
+        <Card elevation={2} sx={{ height: '100%', maxWidth: 520, width: '100%', mx: 'auto' }}>
             <CardContent>
                 <Stack direction="row" spacing={2} alignItems="center">
                     <Avatar sx={{ bgcolor: 'primary.main', width: 48, height: 48 }}>

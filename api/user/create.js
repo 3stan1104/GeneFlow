@@ -125,8 +125,14 @@ export default async function handler(req, res) {
                 const db = getAdminFirestore()
                 await db.doc(`students/${userRecord.uid}`).set({
                     id: userRecord.uid,
+                    studentNumber: userRecord.uid,
                     progress: 0,
                     score: 0,
+                    name: {
+                        first: firstName || null,
+                        middle: middleName || null,
+                        last: lastName || null,
+                    },
                 })
             } catch (fsErr) {
                 console.error('Failed to create Firestore student document for user', userRecord.uid, fsErr)
