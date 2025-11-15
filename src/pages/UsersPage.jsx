@@ -3,6 +3,7 @@ import {
     Alert, Box, Button, Chip, Paper, Stack, Typography, Dialog, DialogTitle,
     DialogContent, DialogActions, TextField, IconButton, Snackbar, MenuItem,
 } from '@mui/material'
+import { auth } from '../firebase'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
@@ -22,7 +23,19 @@ function UsersPage() {
         setLoading(true)
         setError('')
         try {
-            const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/getAll`)
+            // include current user's ID token if available to authenticate admin API requests
+            let headers = { 'Content-Type': 'application/json' }
+            try {
+                const current = auth.currentUser
+                if (current) {
+                    const token = await current.getIdToken(true)
+                    if (token) headers.Authorization = `Bearer ${token}`
+                }
+            } catch (tokenErr) {
+                console.warn('Failed to obtain ID token for fetchUsers', tokenErr)
+            }
+
+            const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/getAll`, { headers })
             if (!response.ok) {
                 throw new Error(`Request failed with status ${response.status}`)
             }
@@ -54,8 +67,21 @@ function UsersPage() {
     const handleDelete = useCallback(async (uid) => {
         if (!window.confirm('Are you sure you want to delete this user?')) return
         try {
+            // include ID token for auth
+            let headers = {}
+            try {
+                const current = auth.currentUser
+                if (current) {
+                    const token = await current.getIdToken(true)
+                    if (token) headers.Authorization = `Bearer ${token}`
+                }
+            } catch (t) {
+                console.warn('Failed to get token for delete', t)
+            }
+
             const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/delete?uid=${uid}`, {
                 method: 'DELETE',
+                headers,
             })
             if (!response.ok) throw new Error('Failed to delete user')
             // Optimistically remove the row so the UI updates immediately
@@ -71,9 +97,21 @@ function UsersPage() {
 
     const handleResetPassword = useCallback(async (email) => {
         try {
+            // include ID token for auth
+            let headers = { 'Content-Type': 'application/json' }
+            try {
+                const current = auth.currentUser
+                if (current) {
+                    const token = await current.getIdToken(true)
+                    if (token) headers.Authorization = `Bearer ${token}`
+                }
+            } catch (t) {
+                console.warn('Failed to get token for resetPassword', t)
+            }
+
             const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/resetPassword`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({ email }),
             })
             if (!response.ok) throw new Error('Failed to generate reset link')
@@ -258,9 +296,21 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers }) {
                 role: role || 'student',
             }
 
+            // include ID token for auth
+            let headers = { 'Content-Type': 'application/json' }
+            try {
+                const current = auth.currentUser
+                if (current) {
+                    const token = await current.getIdToken(true)
+                    if (token) headers.Authorization = `Bearer ${token}`
+                }
+            } catch (t) {
+                console.warn('Failed to get token for create', t)
+            }
+
             const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/create`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify(body),
             })
 
