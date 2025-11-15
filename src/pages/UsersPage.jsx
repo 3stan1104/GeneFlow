@@ -65,7 +65,6 @@ function UsersPage() {
     }, [])
 
     const handleDelete = useCallback(async (uid) => {
-        if (!window.confirm('Are you sure you want to delete this user?')) return
         try {
             // include ID token for auth
             let headers = {}
@@ -94,6 +93,22 @@ function UsersPage() {
             setSnackbar({ open: true, message: 'Failed to delete user', severity: 'error' })
         }
     }, [fetchUsers])
+
+    // State for confirmation dialog when deleting a user
+    const [pendingDelete, setPendingDelete] = useState(null)
+
+    const handleDeleteClick = useCallback((uid) => {
+        setPendingDelete(uid)
+    }, [])
+
+    const handleCancelDelete = useCallback(() => setPendingDelete(null), [])
+
+    const handleConfirmDelete = useCallback(async () => {
+        if (!pendingDelete) return
+        const uid = pendingDelete
+        setPendingDelete(null)
+        await handleDelete(uid)
+    }, [pendingDelete, handleDelete])
 
     const handleResetPassword = useCallback(async (email) => {
         try {
@@ -202,7 +217,7 @@ function UsersPage() {
                         <IconButton
                             size="medium"
                             color="error"
-                            onClick={() => handleDelete(params.row.id)}
+                            onClick={() => handleDeleteClick(params.row.id)}
                             aria-label="delete user"
                             title="Delete user"
                             sx={{ p: 1.9 }}
@@ -213,7 +228,7 @@ function UsersPage() {
                 ),
             },
         ],
-        [handleDelete, handleResetPassword],
+        [handleDeleteClick, handleResetPassword],
     )
 
     useEffect(() => {
@@ -259,6 +274,25 @@ function UsersPage() {
 
             {/* Add Student Dialog */}
             <AddStudentDialog openStateHook={[open, setOpen]} onAdded={() => setSnackbar({ open: true, message: 'User added', severity: 'success' })} fetchUsers={fetchUsers} />
+
+            {/* Confirm delete dialog */}
+            <Dialog open={!!pendingDelete} onClose={handleCancelDelete}>
+                <DialogTitle>Confirm Deletion</DialogTitle>
+                <DialogContent>
+                    <Typography>Are you sure you want to delete this user?</Typography>
+                    {pendingDelete && (
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                            UID: {pendingDelete}
+                        </Typography>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelDelete}>Cancel</Button>
+                    <Button onClick={handleConfirmDelete} color="error" variant="contained">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Snackbar feedback */}
             <SnackbarController snackbarStateHook={[snackbar, setSnackbar]} />
