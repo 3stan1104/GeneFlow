@@ -1,5 +1,5 @@
 import { handleCors } from '../_lib/cors.js'
-import { getAdminAuth } from '../_lib/auth.js'
+import { getAdminAuth, getAdminFirestore } from '../_lib/auth.js'
 
 export default async function handler(req, res) {
     if (handleCors(req, res)) return
@@ -50,6 +50,15 @@ export default async function handler(req, res) {
             if (adminCount <= 1) {
                 return res.status(400).json({ error: 'Cannot delete the last admin account' })
             }
+        }
+
+        // Delete Firestore data associated with this user (students/{uid})
+        try {
+            const db = getAdminFirestore()
+            await db.doc(`students/${uid}`).delete()
+        } catch (fsErr) {
+            console.error('Failed to delete Firestore student document for user', uid, fsErr)
+            return res.status(500).json({ error: 'Failed to delete user data from Firestore' })
         }
 
         await auth.deleteUser(uid)

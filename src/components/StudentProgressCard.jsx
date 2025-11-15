@@ -57,13 +57,13 @@ export default function StudentProgressCard({ name = 'Unnamed', studentNumber = 
 
                 </Stack>
                 <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" width="100%" sx={{ mt: 1 }}>
-                    <Box sx={{ textAlign: 'left', minWidth: 72}}>
+                    <Box sx={{ textAlign: 'left', minWidth: 72 }}>
                         <Typography variant="h6" fontWeight={700}>
                             {studentNumber ?? 'N/A'}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                             Student Number
-                        </Typography>   
+                        </Typography>
                     </Box>
                     <Box sx={{ textAlign: 'left', minWidth: 72 }}>
                         <Typography variant="h6" fontWeight={700}>

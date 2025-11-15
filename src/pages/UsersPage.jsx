@@ -189,7 +189,7 @@ function UsersPage() {
                 sortable: false,
                 renderCell: (params) => (
                     <Stack direction="row" spacing={1} sx={{ width: '100%', justifyContent: 'center', alignItems: 'center', pr: 1 }}>
-                        <IconButton
+                        {/* <IconButton
                             size="medium"
                             color="primary"
                             onClick={() => handleResetPassword(params.row.email)}
@@ -198,14 +198,14 @@ function UsersPage() {
                             sx={{ p: 1.25 }}
                         >
                             <LockResetIcon fontSize="small" />
-                        </IconButton>
+                        </IconButton> */}
                         <IconButton
                             size="medium"
                             color="error"
                             onClick={() => handleDelete(params.row.id)}
                             aria-label="delete user"
                             title="Delete user"
-                            sx={{ p: 1.25 }}
+                            sx={{ p: 1.9 }}
                         >
                             <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -244,20 +244,17 @@ function UsersPage() {
             {error && <Alert severity="error">{error}</Alert>}
 
             <Paper sx={{ height: 520, width: '100%', overflowX: 'auto' }}>
-                {/* internal minWidth prevents columns from forcing page overflow; container will scroll horizontally when needed */}
-                <Box sx={{ minWidth: 1200 }}>
-                    <DataGrid
-                        rows={users}
-                        columns={columns}
-                        loading={loading}
-                        disableRowSelectionOnClick
-                        pageSizeOptions={[5, 10, 25]}
-                        initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-                        slots={{ toolbar: GridToolbar }}
-                        slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
-                        sx={{ width: '100%' }}
-                    />
-                </Box>
+                <DataGrid
+                    rows={users}
+                    columns={columns}
+                    loading={loading}
+                    disableRowSelectionOnClick
+                    pageSizeOptions={[5, 10, 25]}
+                    initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+                    slots={{ toolbar: GridToolbar }}
+                    slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
+                    sx={{ width: '100%' }}
+                />
             </Paper>
 
             {/* Add Student Dialog */}
