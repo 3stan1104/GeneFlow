@@ -26,7 +26,6 @@ export default async function handler(req, res) {
         const payload = users.map((userRecord) => ({
             uid: userRecord.uid,
             email: userRecord.email || 'No email',
-            displayName: userRecord.displayName || null,
             emailVerified: userRecord.emailVerified || false,
             disabled: userRecord.disabled || false,
             status: userRecord.disabled ? 'disabled' : 'active',
@@ -36,6 +35,8 @@ export default async function handler(req, res) {
             firstName: userRecord.customClaims?.firstName || null,
             middleName: userRecord.customClaims?.middleName || null,
             lastName: userRecord.customClaims?.lastName || null,
+            section: userRecord.customClaims?.section || null,
+            curriculum: userRecord.customClaims?.curriculum || null,
             // role (e.g. 'student', 'admin') if present in custom claims
             role: userRecord.customClaims?.role || null,
         }))

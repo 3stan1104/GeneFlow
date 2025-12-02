@@ -11,6 +11,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import LockResetIcon from '@mui/icons-material/LockReset'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 const ADMIN_API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'https://geneflow-letran.vercel.app'
+const MIN_PASSWORD_LENGTH = 6
 
 function UsersPage() {
     const [users, setUsers] = useState([])
@@ -44,11 +45,12 @@ function UsersPage() {
                 id: user.uid,
                 studentNumber: user.uid,
                 email: user.email,
-                displayName: user.displayName || null,
                 role: user.role || null,
                 firstName: user.firstName || null,
                 middleName: user.middleName || null,
                 lastName: user.lastName || null,
+                section: user.section || null,
+                curriculum: user.curriculum || null,
                 emailVerified: user.emailVerified,
                 disabled: user.disabled,
                 status: user.status,
@@ -142,22 +144,12 @@ function UsersPage() {
     const columns = useMemo(
         () => [
             { field: 'email', headerName: 'Email', flex: 1.5, minWidth: 240 },
-            { field: 'displayName', headerName: 'Display Name', flex: 1, minWidth: 180 },
             { field: 'studentNumber', headerName: 'Student Number', flex: 0.8, minWidth: 140 },
             { field: 'firstName', headerName: 'First Name', flex: 0.7, minWidth: 140 },
             { field: 'middleName', headerName: 'Middle Name', flex: 0.6, minWidth: 120 },
             { field: 'lastName', headerName: 'Last Name', flex: 0.8, minWidth: 160 },
-            {
-                field: 'status',
-                headerName: 'Status',
-                flex: 0.5,
-                minWidth: 120,
-                renderCell: (params) => {
-                    const status = (params.value ?? 'active').toLowerCase()
-                    const color = status === 'active' ? 'success' : status === 'disabled' ? 'error' : 'default'
-                    return <Chip size="small" color={color} label={status.replace(/^./, (c) => c.toUpperCase())} />
-                },
-            },
+            { field: 'section', headerName: 'Section', flex: 0.6, minWidth: 120 },
+            { field: 'curriculum', headerName: 'Curriculum', flex: 0.8, minWidth: 140 },
             // {
             //     field: 'emailVerified',
             //     headerName: 'Verified',
@@ -273,7 +265,12 @@ function UsersPage() {
             </Paper>
 
             {/* Add Student Dialog */}
-            <AddStudentDialog openStateHook={[open, setOpen]} onAdded={() => setSnackbar({ open: true, message: 'User added', severity: 'success' })} fetchUsers={fetchUsers} />
+            <AddStudentDialog
+                openStateHook={[open, setOpen]}
+                onAdded={() => setSnackbar({ open: true, message: 'User added', severity: 'success' })}
+                fetchUsers={fetchUsers}
+                snackbarStateHook={[snackbar, setSnackbar]}
+            />
 
             {/* Confirm delete dialog */}
             <Dialog open={!!pendingDelete} onClose={handleCancelDelete}>
@@ -302,31 +299,42 @@ function UsersPage() {
 
 export default UsersPage
 
-function AddStudentDialog({ openStateHook, onAdded, fetchUsers }) {
+function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHook }) {
     const [open, setOpen] = openStateHook
+    const [, setSnackbar] = snackbarStateHook || []
     const [email, setEmail] = useState('')
-    const [displayName, setDisplayName] = useState('')
     const [studentNumber, setStudentNumber] = useState('')
     const [firstName, setFirstName] = useState('')
     const [middleName, setMiddleName] = useState('')
     const [lastName, setLastName] = useState('')
+    const [section, setSection] = useState('')
+    const [curriculum, setCurriculum] = useState('')
     const [password, setPassword] = useState('')
+    const [passwordTouched, setPasswordTouched] = useState(false)
     const [role, setRole] = useState('student')
     const [submitting, setSubmitting] = useState(false)
+    const trimmedEmail = email.trim()
+    const trimmedPassword = password.trim()
+    const passwordTooShort = trimmedPassword.length > 0 && trimmedPassword.length < MIN_PASSWORD_LENGTH
+    const isPasswordValid = trimmedPassword.length >= MIN_PASSWORD_LENGTH
 
     const handleClose = () => setOpen(false)
 
     const handleSubmit = async () => {
-        if (!email.trim() || !displayName.trim() || !password.trim()) return
+        if (!trimmedEmail || !trimmedPassword || !isPasswordValid) {
+            setPasswordTouched(true)
+            return
+        }
         setSubmitting(true)
         try {
             const body = {
-                email: email.trim(),
-                password: password.trim(),
-                displayName: displayName.trim(),
+                email: trimmedEmail,
+                password: trimmedPassword,
                 firstName: firstName.trim() || null,
                 middleName: middleName.trim() || null,
                 lastName: lastName.trim() || null,
+                section: section.trim() || null,
+                curriculum: curriculum.trim() || null,
                 uid: studentNumber.trim() || undefined,
                 role: role || 'student',
             }
@@ -352,20 +360,23 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers }) {
             if (!response.ok) {
                 const err = await response.json().catch(() => null)
                 const message = err?.error || err?.message || 'Failed to create user'
-                setSnackbar({ open: true, message, severity: 'error' })
+                setSnackbar?.({ open: true, message, severity: 'error' })
                 throw new Error(message)
             }
 
             const data = await response.json().catch(() => null)
             setEmail('')
-            setDisplayName('')
+            setStudentNumber('')
             setFirstName('')
             setMiddleName('')
             setLastName('')
+            setSection('')
+            setCurriculum('')
             setPassword('')
+            setPasswordTouched(false)
             setRole('student')
             setOpen(false)
-            setSnackbar({ open: true, message: 'User created', severity: 'success' })
+            setSnackbar?.({ open: true, message: 'User created', severity: 'success' })
             onAdded?.()
             // refresh list via provided function
             try {
@@ -391,12 +402,15 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers }) {
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>
                     <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth required />
-                    <TextField label="Display Name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} fullWidth required />
                     <TextField label="Student Number" value={studentNumber} onChange={(e) => setStudentNumber(e.target.value)} fullWidth helperText="Optional: set internal UID (e.g. student number)" />
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                         <TextField label="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} fullWidth />
                         <TextField label="Middle Name" value={middleName} onChange={(e) => setMiddleName(e.target.value)} fullWidth />
                         <TextField label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} fullWidth />
+                    </Stack>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                        <TextField label="Section" value={section} onChange={(e) => setSection(e.target.value)} fullWidth />
+                        <TextField label="Curriculum" value={curriculum} onChange={(e) => setCurriculum(e.target.value)} fullWidth />
                     </Stack>
                     <TextField
                         select
@@ -409,15 +423,37 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers }) {
                         <MenuItem value="student">Student</MenuItem>
                         <MenuItem value="admin">Admin</MenuItem>
                     </TextField>
-                    <TextField label="Temporary Password" value={password} onChange={(e) => setPassword(e.target.value)} fullWidth required type="password" />
+                    <TextField
+                        label="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onBlur={() => setPasswordTouched(true)}
+                        fullWidth
+                        required
+                        type="password"
+                        error={passwordTouched && passwordTooShort}
+                        helperText={
+                            passwordTouched && passwordTooShort
+                                ? `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
+                                : `Use at least ${MIN_PASSWORD_LENGTH} characters.`
+                        }
+                    />
                     <Typography variant="caption" color="text.secondary">
-                        A temporary password is required so the user can sign in and reset their password.
+                        Use at least {MIN_PASSWORD_LENGTH} characters so the user can sign in and reset their credentials afterward.
                     </Typography>
                 </Stack>
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleClose} disabled={submitting}>Cancel</Button>
-                <Button onClick={handleSubmit} variant="contained" disabled={submitting || !email.trim() || !displayName.trim() || !password.trim()}>
+                <Button
+                    onClick={handleSubmit}
+                    variant="contained"
+                    disabled={
+                        submitting
+                        || !trimmedEmail
+                        || !isPasswordValid
+                    }
+                >
                     {submitting ? 'Creating…' : 'Create User'}
                 </Button>
             </DialogActions>

@@ -36,7 +36,17 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { email: rawEmail, password: rawPassword, displayName, firstName, middleName, lastName, uid: customUid, role } = req.body || {}
+        const {
+            email: rawEmail,
+            password: rawPassword,
+            firstName,
+            middleName,
+            lastName,
+            section,
+            curriculum,
+            uid: customUid,
+            role,
+        } = req.body || {}
 
         const email = typeof rawEmail === 'string' ? rawEmail.trim() : ''
         const password = typeof rawPassword === 'string' ? rawPassword : ''
@@ -84,7 +94,6 @@ export default async function handler(req, res) {
         const createPayload = {
             email,
             password,
-            displayName: displayName || null,
         }
         if (customUid) createPayload.uid = customUid
 
@@ -100,7 +109,13 @@ export default async function handler(req, res) {
             if (code === 'auth/invalid-uid') {
                 return res.status(400).json({ error: 'Invalid UID format' })
             }
-            return res.status(500).json({ error: 'Unable to create user' })
+            if (code === 'auth/invalid-password' || code === 'auth/weak-password') {
+                return res.status(400).json({ error: 'Password must be at least 6 characters long' })
+            }
+            if (code === 'auth/missing-password') {
+                return res.status(400).json({ error: 'Password is required' })
+            }
+            return res.status(500).json({ error: createErr?.message || 'Unable to create user' })
         }
 
         // Build custom claims object (include role if present)
@@ -108,6 +123,8 @@ export default async function handler(req, res) {
         if (firstName) customClaims.firstName = firstName
         if (middleName) customClaims.middleName = middleName
         if (lastName) customClaims.lastName = lastName
+        if (section) customClaims.section = section
+        if (curriculum) customClaims.curriculum = curriculum
         if (role) customClaims.role = role
 
         if (Object.keys(customClaims).length > 0) {
@@ -133,6 +150,8 @@ export default async function handler(req, res) {
                         middle: middleName || null,
                         last: lastName || null,
                     },
+                    section: section || null,
+                    curriculum: curriculum || null,
                 })
             } catch (fsErr) {
                 console.error('Failed to create Firestore student document for user', userRecord.uid, fsErr)
