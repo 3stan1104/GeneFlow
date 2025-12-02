@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-    Alert, Box, Card, CardContent, Chip, CircularProgress,
-    LinearProgress, Stack, Typography, Grid
+    Alert, Box, Card, CardContent, CircularProgress,
+    Stack, Typography, Grid
 } from '@mui/material'
-import { collection, getDocs, query, orderBy } from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 import SchoolIcon from '@mui/icons-material/School'
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
@@ -18,13 +18,13 @@ function StudentsPage() {
     useEffect(() => {
         const fetchStudents = async () => {
             try {
-                const studentsQuery = query(collection(db, 'students'), orderBy('progress', 'desc'))
-                const snapshot = await getDocs(studentsQuery)
+                const snapshot = await getDocs(collection(db, 'students'))
                 const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+                data.sort((a, b) => getPlayTimeMinutes(b) - getPlayTimeMinutes(a))
                 setStudents(data)
             } catch (err) {
                 console.error('Failed to load students', err)
-                setError('Unable to fetch student progress right now.')
+                setError('Unable to fetch student play time right now.')
             } finally {
                 setLoading(false)
             }
@@ -35,15 +35,37 @@ function StudentsPage() {
 
     const stats = useMemo(() => {
         if (!students.length) {
-            return { averageProgress: 0, averageScore: 0 }
+            return { averagePlayTime: 0, averageScore: 0 }
         }
-        const totalProgress = students.reduce((sum, student) => sum + (student.progress ?? 0), 0)
+        const totalPlayTime = students.reduce((sum, student) => sum + getPlayTimeMinutes(student), 0)
         const totalScore = students.reduce((sum, student) => sum + (student.score ?? 0), 0)
         return {
-            averageProgress: Math.round(totalProgress / students.length),
+            averagePlayTime: Math.round(totalPlayTime / students.length),
             averageScore: Math.round(totalScore / students.length),
         }
     }, [students])
+
+    const formatPlayTime = (minutes) => {
+        if (!minutes || Number.isNaN(minutes)) return '0m'
+        const totalMinutes = Math.max(0, Math.round(minutes))
+        const hours = Math.floor(totalMinutes / 60)
+        const mins = totalMinutes % 60
+        if (hours && mins) return `${hours}h ${mins}m`
+        if (hours) return `${hours}h`
+        return `${mins}m`
+    }
+
+    function getPlayTimeMinutes(student) {
+        if (!student || typeof student !== 'object') return 0
+        const candidates = ['playTimeMinutes', 'playtimeMinutes', 'playTime', 'timeSpentMinutes', 'timeSpent', 'progress']
+        for (const key of candidates) {
+            const value = student[key]
+            if (typeof value === 'number' && !Number.isNaN(value)) {
+                return value
+            }
+        }
+        return 0
+    }
 
     if (loading) {
         return (
@@ -56,7 +78,7 @@ function StudentsPage() {
     return (
         <Stack spacing={4}>
             <Typography variant="h4" fontWeight={700}>
-                Student Progress
+                Student Play Time
             </Typography>
 
             {error && <Alert severity="error">{error}</Alert>}
@@ -90,10 +112,10 @@ function StudentsPage() {
                                 </Box>
                                 <Box>
                                     <Typography variant="overline" color="text.secondary">
-                                        Average Progress
+                                        Average Play Time
                                     </Typography>
                                     <Typography variant="h5" fontWeight={700}>
-                                        {stats.averageProgress}%
+                                        {formatPlayTime(stats.averagePlayTime)}
                                     </Typography>
                                 </Box>
                             </Stack>
@@ -123,7 +145,7 @@ function StudentsPage() {
 
             <Stack spacing={2}>
                 <Typography variant="h6" fontWeight={700}>
-                    Progress Overview
+                    Play Time Overview
                 </Typography>
                 <Grid container spacing={2} alignItems="stretch">
                     {students.map((student) => {
@@ -136,7 +158,7 @@ function StudentsPage() {
                                     name={fullName}
                                     studentNumber={studentNumber}
                                     score={student.score}
-                                    progress={student.progress}
+                                    playTimeMinutes={getPlayTimeMinutes(student)}
                                 />
                             </Grid>
                         )

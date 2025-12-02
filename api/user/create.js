@@ -143,7 +143,7 @@ export default async function handler(req, res) {
                 await db.doc(`students/${userRecord.uid}`).set({
                     id: userRecord.uid,
                     studentNumber: userRecord.uid,
-                    progress: 0,
+                    playTimeMinutes: 0,
                     score: 0,
                     name: {
                         first: firstName || null,

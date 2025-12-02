@@ -12,6 +12,13 @@ import LockResetIcon from '@mui/icons-material/LockReset'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 const ADMIN_API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'https://geneflow-letran.vercel.app'
 const MIN_PASSWORD_LENGTH = 6
+const SECTION_OPTIONS = ['Harvey', 'Heisenberg', 'Fermat', 'Ampere']
+const SECTION_CURRICULUM_MAP = {
+    Harvey: 'LSHS',
+    Heisenberg: 'LSHS',
+    Fermat: 'BEC',
+    Ampere: 'BEC',
+}
 
 function UsersPage() {
     const [users, setUsers] = useState([])
@@ -320,6 +327,12 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHoo
 
     const handleClose = () => setOpen(false)
 
+    const handleSectionChange = (event) => {
+        const selectedSection = event.target.value
+        setSection(selectedSection)
+        setCurriculum(SECTION_CURRICULUM_MAP[selectedSection] || '')
+    }
+
     const handleSubmit = async () => {
         if (!trimmedEmail || !trimmedPassword || !isPasswordValid) {
             setPasswordTouched(true)
@@ -333,8 +346,8 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHoo
                 firstName: firstName.trim() || null,
                 middleName: middleName.trim() || null,
                 lastName: lastName.trim() || null,
-                section: section.trim() || null,
-                curriculum: curriculum.trim() || null,
+                section: section?.trim() || null,
+                curriculum: curriculum?.trim() || null,
                 uid: studentNumber.trim() || undefined,
                 role: role || 'student',
             }
@@ -409,8 +422,20 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHoo
                         <TextField label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} fullWidth />
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                        <TextField label="Section" value={section} onChange={(e) => setSection(e.target.value)} fullWidth />
-                        <TextField label="Curriculum" value={curriculum} onChange={(e) => setCurriculum(e.target.value)} fullWidth />
+                        <TextField select label="Section" value={section} onChange={handleSectionChange} fullWidth helperText="Select the classroom section">
+                            {SECTION_OPTIONS.map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                        <TextField
+                            label="Curriculum"
+                            value={curriculum}
+                            fullWidth
+                            InputProps={{ readOnly: true }}
+                            helperText={section ? 'Automatically set based on section' : 'Choose a section to set curriculum'}
+                        />
                     </Stack>
                     <TextField
                         select

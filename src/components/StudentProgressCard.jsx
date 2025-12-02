@@ -1,10 +1,11 @@
 import React from 'react'
-import { Card, CardContent, Stack, Typography, Avatar, Box, LinearProgress } from '@mui/material'
+import { Card, CardContent, Stack, Typography, Avatar, Box } from '@mui/material'
 import SchoolIcon from '@mui/icons-material/School'
+import AccessTimeFilledIcon from '@mui/icons-material/AccessTimeFilled'
 
-export default function StudentProgressCard({ name = 'Unnamed', studentNumber = null, score = null, progress = 0 }) {
+export default function StudentProgressCard({ name = 'Unnamed', studentNumber = null, score = null, playTimeMinutes = 0 }) {
     const displayScore = typeof score === 'number' ? score : 'N/A'
-    const pct = typeof progress === 'number' ? Math.max(0, Math.min(100, Math.round(progress))) : 0
+    const formattedPlayTime = formatPlayTime(playTimeMinutes)
 
     // Normalize name parts: support either an object { first, middle, last }
     // or a single string like "First Middle Last"
@@ -74,14 +75,15 @@ export default function StudentProgressCard({ name = 'Unnamed', studentNumber = 
                         </Typography>
                     </Box>
                 </Stack>
-                <Box sx={{ mt: 1 }}>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                        <Box sx={{ flex: 1 }}>
-                            <LinearProgress variant="determinate" value={pct} sx={{ height: 10, borderRadius: 5 }} />
-                        </Box>
-                        <Box sx={{ minWidth: 25, textAlign: 'right' }}>
+                <Box sx={{ mt: 1.5 }}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                        <AccessTimeFilledIcon color="action" fontSize="small" />
+                        <Box>
+                            <Typography variant="subtitle1" fontWeight={700}>
+                                {formattedPlayTime}
+                            </Typography>
                             <Typography variant="caption" color="text.secondary">
-                                {pct}%
+                                Play Time
                             </Typography>
                         </Box>
                     </Stack>
@@ -89,4 +91,14 @@ export default function StudentProgressCard({ name = 'Unnamed', studentNumber = 
             </CardContent>
         </Card>
     )
+}
+
+function formatPlayTime(minutes) {
+    if (typeof minutes !== 'number' || Number.isNaN(minutes)) return '0m'
+    const rounded = Math.max(0, Math.round(minutes))
+    const hours = Math.floor(rounded / 60)
+    const mins = rounded % 60
+    if (hours && mins) return `${hours}h ${mins}m`
+    if (hours) return `${hours}h`
+    return `${mins}m`
 }

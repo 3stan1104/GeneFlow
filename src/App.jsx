@@ -20,7 +20,7 @@ import { useSession } from './context/SessionContext'
 
 const drawerWidth = 260
 const navItems = [
-  { id: 'students', label: 'Student Progress', icon: <SchoolIcon fontSize="small" />, path: '/students' },
+  { id: 'students', label: 'Student Play Time', icon: <SchoolIcon fontSize="small" />, path: '/students' },
   { id: 'users', label: 'Manage Users', icon: <GroupIcon fontSize="small" />, path: '/users' },
 ]
 
