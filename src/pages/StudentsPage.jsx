@@ -57,7 +57,7 @@ function StudentsPage() {
 
     function getPlayTimeMinutes(student) {
         if (!student || typeof student !== 'object') return 0
-        const candidates = ['playTimeMinutes', 'playtimeMinutes', 'playTime', 'timeSpentMinutes', 'timeSpent', 'progress']
+        const candidates = ['playTimeMinutes', 'playtimeMinutes', 'playTime', 'timeSpentMinutes', 'timeSpent']
         for (const key of candidates) {
             const value = student[key]
             if (typeof value === 'number' && !Number.isNaN(value)) {

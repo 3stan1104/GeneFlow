@@ -77,7 +77,9 @@ export default function StudentProgressCard({ name = 'Unnamed', studentNumber = 
                 </Stack>
                 <Box sx={{ mt: 1.5 }}>
                     <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <AccessTimeFilledIcon color="action" fontSize="small" />
+                        <Box sx={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'action.hover' }}>
+                            <AccessTimeFilledIcon color="action" fontSize="small" />
+                        </Box>
                         <Box>
                             <Typography variant="subtitle1" fontWeight={700}>
                                 {formattedPlayTime}

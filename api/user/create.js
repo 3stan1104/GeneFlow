@@ -145,6 +145,7 @@ export default async function handler(req, res) {
                     studentNumber: userRecord.uid,
                     playTimeMinutes: 0,
                     score: 0,
+                    tutorialCompleted: false,
                     name: {
                         first: firstName || null,
                         middle: middleName || null,
