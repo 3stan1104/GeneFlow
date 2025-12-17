@@ -32,7 +32,7 @@ character: { (the code for each body part is defined in data/defaults.json)
   gender: Male/Female (add hair if female)
   mutations: []
   head: "",
-  eyesMouth?: "",
+  eyesMouth: "",
   ears: "",
   hair: "",
   torso: "",
