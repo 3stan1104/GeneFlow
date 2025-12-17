@@ -68,7 +68,6 @@ function generateRandomCharacter(gender, mutationChance = 0, maxMutations = 3) {
 
     const character = {
         gender: gender,
-        mutations: [],
         head: getRandomPart(characterParts.head, gender),
         eyesMouth: getRandomPart(characterParts.eyesMouth, gender),
         ears: getRandomPart(characterParts.ears, gender),
@@ -123,7 +122,6 @@ function generateRandomCharacter(gender, mutationChance = 0, maxMutations = 3) {
                         character[mapping.parent][mapping.child] = mutation
                     }
 
-                    character.mutations.push(partName)
                     mutationCount++
                 }
             }
@@ -158,8 +156,7 @@ async function generateRandomCharactersForAllStudents(mutationChance = 0, maxMut
         batch.update(doc.ref, { character })
         writesInBatch += 1
         updatedDocuments += 1
-        const mutationInfo = character.mutations.length > 0 ? ` [${character.mutations.length} mutations]` : ''
-        console.log(`Queued random character for student ${doc.id} (${gender})${mutationInfo}`)
+        console.log(`Queued random character for student ${doc.id} (${gender})`)
 
         if (writesInBatch >= BATCH_SIZE) {
             await batch.commit()

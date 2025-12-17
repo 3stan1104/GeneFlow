@@ -51,7 +51,6 @@ function migrateCharacter(oldCharacter) {
 
     const newCharacter = {
         gender: oldCharacter.gender || '',
-        mutations: Array.isArray(oldCharacter.mutations) ? oldCharacter.mutations : [],
         // Migrate head - check if it's the old nested structure or already flat
         head: '',
         eyesMouth: '',
