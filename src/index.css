@@ -27,6 +27,12 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Hide root-level scrollbar - scrollbar is handled inside main content */
+html {
+  overflow: hidden;
 }
 
 h1 {

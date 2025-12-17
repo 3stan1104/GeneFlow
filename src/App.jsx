@@ -27,7 +27,7 @@ const navItems = [
 
 function App() {
   const {
-    user, setUser, initializing, themeMode,
+    user, setUser, initializing, roleLoading, themeMode,
     toggleThemeMode,
   } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -118,7 +118,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {initializing ? (
+      {initializing || roleLoading ? (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
           <CircularProgress />
         </Box>
@@ -241,6 +241,34 @@ function App() {
               p: { xs: 2, md: 4 },
               width: { md: `calc(100% - ${drawerWidth}px)` },
               mt: 8,
+              height: 'calc(100vh - 64px)',
+              overflow: 'auto',
+              /* Custom Scrollbar Styles */
+              '&::-webkit-scrollbar': {
+                width: '8px',
+                height: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'transparent',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: themeMode === 'dark'
+                  ? 'rgba(255, 255, 255, 0.2)'
+                  : 'rgba(0, 0, 0, 0.2)',
+                borderRadius: '4px',
+                transition: 'background 0.2s ease',
+                '&:hover': {
+                  background: themeMode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.35)'
+                    : 'rgba(0, 0, 0, 0.35)',
+                },
+              },
+              /* Firefox */
+              scrollbarWidth: 'thin',
+              scrollbarColor: themeMode === 'dark'
+                ? 'rgba(255, 255, 255, 0.2) transparent'
+                : 'rgba(0, 0, 0, 0.2) transparent',
             }}
           >
             <Routes>

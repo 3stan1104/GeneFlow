@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-    Alert, Box, Card, CardContent, CircularProgress,
-    Stack, Typography, Grid, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton
+    Alert, Box, Card, CardContent,
+    Stack, Typography, Grid, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton, Skeleton
 } from '@mui/material'
 import { collection, getDocs } from 'firebase/firestore'
 import SchoolIcon from '@mui/icons-material/School'
@@ -11,6 +11,8 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 import StudentProgressCard from '../components/StudentProgressCard'
+import StudentProgressCardSkeleton from '../components/StudentProgressCardSkeleton'
+import StatCardSkeleton from '../components/StatCardSkeleton'
 import { db } from '../firebase'
 
 function StudentsPage() {
@@ -118,9 +120,49 @@ function StudentsPage() {
 
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}>
-                <CircularProgress />
-            </Box>
+            <Stack spacing={4}>
+                <Typography variant="h4" fontWeight={700}>
+                    My Students
+                </Typography>
+
+                {/* Stats Skeletons */}
+                <Grid container spacing={3}>
+                    {[...Array(4)].map((_, index) => (
+                        <Grid key={index} xs={12} sm={6} md={3}>
+                            <StatCardSkeleton />
+                        </Grid>
+                    ))}
+                </Grid>
+
+                {/* Filters Skeleton */}
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }} flexWrap="wrap">
+                    <Skeleton variant="rounded" width={150} height={40} animation="wave" sx={{ borderRadius: 1 }} />
+                    <Skeleton variant="rounded" width={150} height={40} animation="wave" sx={{ borderRadius: 1 }} />
+                    <Skeleton variant="rounded" width={80} height={40} animation="wave" sx={{ borderRadius: 1 }} />
+                    <Box sx={{ ml: 'auto' }}>
+                        <Skeleton variant="text" width={180} height={20} animation="wave" />
+                    </Box>
+                </Stack>
+
+                {/* Student Cards Skeletons */}
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: {
+                            xs: 'repeat(2, 1fr)',
+                            md: 'repeat(3, 1fr)'
+                        },
+                        gap: 2,
+                        width: '100%'
+                    }}
+                >
+                    {[...Array(6)].map((_, index) => (
+                        <Box key={index} sx={{ display: 'flex' }}>
+                            <StudentProgressCardSkeleton />
+                        </Box>
+                    ))}
+                </Box>
+            </Stack>
         )
     }
 

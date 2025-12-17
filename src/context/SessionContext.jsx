@@ -7,18 +7,11 @@ const USER_STORAGE_KEY = 'geneflow:user'
 const THEME_STORAGE_KEY = 'geneflow:theme'
 
 export function SessionProvider({ children }) {
-    const [user, setUser] = useState(() => {
-        try {
-            const cached = localStorage.getItem(USER_STORAGE_KEY)
-            return cached ? JSON.parse(cached) : null
-        } catch (error) {
-            console.warn('Failed to read cached user', error)
-            return null
-        }
-    })
+    const [user, setUser] = useState(null)
     const [themeMode, setThemeMode] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light')
     const [activePage, setActivePage] = useState('students')
     const [initializing, setInitializing] = useState(true)
+    const [roleLoading, setRoleLoading] = useState(false) // Track role fetching separately
 
     useEffect(() => {
         localStorage.setItem(THEME_STORAGE_KEY, themeMode)
@@ -27,18 +20,23 @@ export function SessionProvider({ children }) {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
-                // Get ID token to check user role
-                const idTokenResult = await firebaseUser.getIdTokenResult()
-                const role = idTokenResult?.claims?.role || null
+                setRoleLoading(true)
+                try {
+                    // Get ID token to check user role (force refresh to get latest claims)
+                    const idTokenResult = await firebaseUser.getIdTokenResult(true)
+                    const role = idTokenResult?.claims?.role || null
 
-                const payload = {
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email,
-                    displayName: firebaseUser.displayName,
-                    role,
+                    const payload = {
+                        uid: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        displayName: firebaseUser.displayName,
+                        role,
+                    }
+                    setUser(payload)
+                    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(payload))
+                } finally {
+                    setRoleLoading(false)
                 }
-                setUser(payload)
-                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(payload))
             } else {
                 setUser(null)
                 localStorage.removeItem(USER_STORAGE_KEY)
@@ -56,13 +54,14 @@ export function SessionProvider({ children }) {
             user,
             setUser,
             initializing,
+            roleLoading,
             themeMode,
             setThemeMode,
             toggleThemeMode,
             activePage,
             setActivePage,
         }),
-        [user, initializing, themeMode, activePage],
+        [user, initializing, roleLoading, themeMode, activePage],
     )
 
     return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
