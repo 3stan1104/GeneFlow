@@ -43,6 +43,8 @@ const defaultCharacter = defaults.character
  *   eyesMouth: "EM00"
  *   ears: "E00"
  *   hair: "H00"
+ * 
+ * Also removes character.mutations if it exists (mutations should only be at root level)
  */
 function migrateCharacter(oldCharacter) {
     if (!oldCharacter || typeof oldCharacter !== 'object') {
@@ -71,6 +73,8 @@ function migrateCharacter(oldCharacter) {
         },
         bank: Array.isArray(oldCharacter.bank) ? oldCharacter.bank : [],
     }
+
+    // Explicitly exclude mutations from character (it should only exist at root level)
 
     // Check if head is an object (old nested structure) or string (already migrated/new)
     if (oldCharacter.head && typeof oldCharacter.head === 'object') {
@@ -118,7 +122,8 @@ async function migrateCharacterStructure() {
             oldCharacter.eyesMouth === undefined ||
             oldCharacter.ears === undefined ||
             oldCharacter.hair === undefined ||
-            oldCharacter.hand === undefined
+            oldCharacter.hand === undefined ||
+            oldCharacter.mutations !== undefined
 
         if (needsMigration) {
             const newCharacter = migrateCharacter(oldCharacter)
