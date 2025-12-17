@@ -65,7 +65,7 @@
             "armLeftTemplate"
         ],
         "mutations": [
-            "armLeftGoblin",
+            "armLeftFinned",
             "armLeftDragon",
             "armLeftAlien"
         ],
@@ -76,7 +76,7 @@
             "armRightTemplate"
         ],
         "mutations": [
-            "armRightGoblin",
+            "armRightFinned",
             "armRightDragon",
             "armRightAlien"
         ],

@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import {
   ThemeProvider, createTheme, CssBaseline, Box, AppBar, Toolbar, Typography,
   IconButton, Drawer, List, ListItemButton, ListItemIcon, ListItemText,
-  Divider, Tooltip, Button, CircularProgress,
+  Divider, Tooltip, CircularProgress, Avatar, Menu, MenuItem,
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
@@ -20,7 +20,7 @@ import { useSession } from './context/SessionContext'
 
 const drawerWidth = 260
 const navItems = [
-  { id: 'students', label: 'Student Play Time', icon: <SchoolIcon fontSize="small" />, path: '/students' },
+  { id: 'students', label: 'My Students', icon: <SchoolIcon fontSize="small" />, path: '/students' },
   { id: 'users', label: 'Manage Users', icon: <GroupIcon fontSize="small" />, path: '/users' },
 ]
 
@@ -30,8 +30,19 @@ function App() {
     toggleThemeMode,
   } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [anchorEl, setAnchorEl] = useState(null)
   const navigate = useNavigate()
   const location = useLocation()
+
+  const menuOpen = Boolean(anchorEl)
+
+  const handleAvatarClick = (event) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleMenuClose = () => {
+    setAnchorEl(null)
+  }
 
   const theme = useMemo(
     () =>
@@ -54,12 +65,25 @@ function App() {
   }
 
   const handleLogout = async () => {
+    handleMenuClose()
     try {
       await signOut(auth)
     } catch (error) {
       console.error('Failed to sign out', error)
     }
     navigate('/students')
+  }
+
+  // Get initials for avatar
+  const getInitials = () => {
+    if (user?.displayName) {
+      const names = user.displayName.split(' ')
+      return names.map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase()
+    }
+    return 'U'
   }
 
   const handleDrawerToggle = () => setMobileOpen((prev) => !prev)
@@ -70,14 +94,7 @@ function App() {
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ px: 2, py: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          GeneFlow
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Teacher Dashboard
-        </Typography>
-      </Box>
+      <Toolbar />
       <Divider />
       <List sx={{ flexGrow: 1 }}>
         {navItems.map((item) => (
@@ -112,8 +129,7 @@ function App() {
             color="default"
             elevation={0}
             sx={{
-              width: { md: `calc(100% - ${drawerWidth}px)` },
-              ml: { md: `${drawerWidth}px` },
+              zIndex: (theme) => theme.zIndex.drawer + 1,
               borderBottom: 1,
               borderColor: 'divider',
               backdropFilter: 'blur(12px)',
@@ -128,19 +144,66 @@ function App() {
               >
                 <MenuIcon />
               </IconButton>
-              <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
-                GeneFlow
-              </Typography>
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  GeneFlow
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Teacher Dashboard
+                </Typography>
+              </Box>
               <Tooltip title="Toggle theme">
                 <IconButton color="inherit" onClick={toggleThemeMode} sx={{ mr: 1 }}>
                   {themeMode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Sign out">
-                <Button color="inherit" startIcon={<LogoutIcon />} onClick={handleLogout}>
-                  Logout
-                </Button>
+              <Tooltip title="Account">
+                <IconButton onClick={handleAvatarClick} sx={{ p: 0 }}>
+                  <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
+                    {getInitials()}
+                  </Avatar>
+                </IconButton>
               </Tooltip>
+              <Menu
+                anchorEl={anchorEl}
+                open={menuOpen}
+                onClose={handleMenuClose}
+                onClick={handleMenuClose}
+                slotProps={{
+                  paper: {
+                    elevation: 3,
+                    sx: {
+                      minWidth: 200,
+                      mt: 1.5,
+                    },
+                  },
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <Box sx={{ px: 2, py: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
+                      {getInitials()}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        {user?.displayName || 'Adviser'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {user?.email || '—'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+                <Divider />
+                <MenuItem onClick={handleLogout} sx={{ py: 1.5 }}>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Logout</ListItemText>
+                </MenuItem>
+              </Menu>
             </Toolbar>
           </AppBar>
           <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>

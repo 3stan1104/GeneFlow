@@ -8,6 +8,7 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import LockResetIcon from '@mui/icons-material/LockReset'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 const ADMIN_API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'https://geneflow-letran.vercel.app'
@@ -25,6 +26,7 @@ function UsersPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [open, setOpen] = useState(false)
+    const [editUser, setEditUser] = useState(null)
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' })
 
     const fetchUsers = useCallback(async () => {
@@ -119,6 +121,14 @@ function UsersPage() {
         await handleDelete(uid)
     }, [pendingDelete, handleDelete])
 
+    const handleEditClick = useCallback((user) => {
+        setEditUser(user)
+    }, [])
+
+    const handleEditClose = useCallback(() => {
+        setEditUser(null)
+    }, [])
+
     const handleResetPassword = useCallback(async (email) => {
         try {
             // include ID token for auth
@@ -172,13 +182,13 @@ function UsersPage() {
             // },
             {
                 field: 'lastLogin',
-                headerName: 'Last Login',
+                headerName: 'Last Activity',
                 flex: 0.8,
                 minWidth: 180,
-                valueFormatter: (params) => {
-                    // Defensive: params can be null in some DataGrid internal calls
-                    if (!params || params.value == null) return '—'
-                    const date = new Date(params.value)
+                valueFormatter: (value) => {
+                    // In MUI X DataGrid v6+, valueFormatter receives the value directly
+                    if (value == null) return '—'
+                    const date = new Date(value)
                     if (Number.isNaN(date.getTime())) return '—'
                     return date.toLocaleString()
                 },
@@ -198,11 +208,20 @@ function UsersPage() {
             {
                 field: 'actions',
                 headerName: 'Actions',
-                flex: 0.9,
-                minWidth: 100,
+                flex: 0.5,
+                minWidth: 80,
                 sortable: false,
                 renderCell: (params) => (
-                    <Stack direction="row" spacing={1} sx={{ width: '100%', justifyContent: 'center', alignItems: 'center', pr: 1 }}>
+                    <Stack direction="row" spacing={0} sx={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+                        <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleEditClick(params.row)}
+                            aria-label="edit user"
+                            title="Edit user"
+                        >
+                            <EditIcon fontSize="small" />
+                        </IconButton>
                         {/* <IconButton
                             size="medium"
                             color="primary"
@@ -214,12 +233,11 @@ function UsersPage() {
                             <LockResetIcon fontSize="small" />
                         </IconButton> */}
                         <IconButton
-                            size="medium"
+                            size="small"
                             color="error"
                             onClick={() => handleDeleteClick(params.row.id)}
                             aria-label="delete user"
                             title="Delete user"
-                            sx={{ p: 1.9 }}
                         >
                             <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -227,7 +245,7 @@ function UsersPage() {
                 ),
             },
         ],
-        [handleDeleteClick, handleResetPassword],
+        [handleDeleteClick, handleEditClick, handleResetPassword],
     )
 
     useEffect(() => {
@@ -272,10 +290,25 @@ function UsersPage() {
             </Paper>
 
             {/* Add Student Dialog */}
-            <AddStudentDialog
-                openStateHook={[open, setOpen]}
-                onAdded={() => setSnackbar({ open: true, message: 'User added', severity: 'success' })}
-                fetchUsers={fetchUsers}
+            <UserFormDialog
+                open={open}
+                onClose={() => setOpen(false)}
+                onSuccess={() => {
+                    setSnackbar({ open: true, message: 'User added', severity: 'success' })
+                    fetchUsers()
+                }}
+                snackbarStateHook={[snackbar, setSnackbar]}
+            />
+
+            {/* Edit User Dialog */}
+            <UserFormDialog
+                open={!!editUser}
+                onClose={handleEditClose}
+                editUser={editUser}
+                onSuccess={() => {
+                    setSnackbar({ open: true, message: 'User updated', severity: 'success' })
+                    fetchUsers()
+                }}
                 snackbarStateHook={[snackbar, setSnackbar]}
             />
 
@@ -306,9 +339,10 @@ function UsersPage() {
 
 export default UsersPage
 
-function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHook }) {
-    const [open, setOpen] = openStateHook
+function UserFormDialog({ open, onClose, editUser, onSuccess, snackbarStateHook }) {
     const [, setSnackbar] = snackbarStateHook || []
+    const isEditMode = !!editUser
+
     const [email, setEmail] = useState('')
     const [studentNumber, setStudentNumber] = useState('')
     const [firstName, setFirstName] = useState('')
@@ -320,12 +354,47 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHoo
     const [passwordTouched, setPasswordTouched] = useState(false)
     const [role, setRole] = useState('student')
     const [submitting, setSubmitting] = useState(false)
+
+    // Populate form when editing
+    useEffect(() => {
+        if (editUser) {
+            setEmail(editUser.email || '')
+            setStudentNumber(editUser.studentNumber || editUser.id || '')
+            setFirstName(editUser.firstName || '')
+            setMiddleName(editUser.middleName || '')
+            setLastName(editUser.lastName || '')
+            setSection(editUser.section || '')
+            setCurriculum(editUser.curriculum || '')
+            setRole(editUser.role || 'student')
+            setPassword('')
+            setPasswordTouched(false)
+        } else {
+            resetForm()
+        }
+    }, [editUser])
+
+    const resetForm = () => {
+        setEmail('')
+        setStudentNumber('')
+        setFirstName('')
+        setMiddleName('')
+        setLastName('')
+        setSection('')
+        setCurriculum('')
+        setPassword('')
+        setPasswordTouched(false)
+        setRole('student')
+    }
+
     const trimmedEmail = email.trim()
     const trimmedPassword = password.trim()
     const passwordTooShort = trimmedPassword.length > 0 && trimmedPassword.length < MIN_PASSWORD_LENGTH
     const isPasswordValid = trimmedPassword.length >= MIN_PASSWORD_LENGTH
 
-    const handleClose = () => setOpen(false)
+    const handleClose = () => {
+        resetForm()
+        onClose()
+    }
 
     const handleSectionChange = (event) => {
         const selectedSection = event.target.value
@@ -334,6 +403,14 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHoo
     }
 
     const handleSubmit = async () => {
+        if (isEditMode) {
+            await handleUpdate()
+        } else {
+            await handleCreate()
+        }
+    }
+
+    const handleCreate = async () => {
         if (!trimmedEmail || !trimmedPassword || !isPasswordValid) {
             setPasswordTouched(true)
             return
@@ -352,7 +429,6 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHoo
                 role: role || 'student',
             }
 
-            // include ID token for auth
             let headers = { 'Content-Type': 'application/json' }
             try {
                 const current = auth.currentUser
@@ -377,26 +453,10 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHoo
                 throw new Error(message)
             }
 
-            const data = await response.json().catch(() => null)
-            setEmail('')
-            setStudentNumber('')
-            setFirstName('')
-            setMiddleName('')
-            setLastName('')
-            setSection('')
-            setCurriculum('')
-            setPassword('')
-            setPasswordTouched(false)
-            setRole('student')
-            setOpen(false)
+            resetForm()
+            onClose()
             setSnackbar?.({ open: true, message: 'User created', severity: 'success' })
-            onAdded?.()
-            // refresh list via provided function
-            try {
-                if (typeof fetchUsers === 'function') await fetchUsers()
-            } catch (fetchErr) {
-                console.error('Failed to refresh users after create', fetchErr)
-            }
+            onSuccess?.()
         } catch (err) {
             console.error('Failed to create user', err)
         } finally {
@@ -404,18 +464,92 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHoo
         }
     }
 
+    const handleUpdate = async () => {
+        if (!editUser?.id) return
+        // Validate password if provided
+        if (trimmedPassword && trimmedPassword.length < MIN_PASSWORD_LENGTH) {
+            setPasswordTouched(true)
+            return
+        }
+        setSubmitting(true)
+        try {
+            const body = {
+                uid: editUser.id,
+                firstName: firstName.trim() || null,
+                middleName: middleName.trim() || null,
+                lastName: lastName.trim() || null,
+                section: section?.trim() || null,
+                curriculum: curriculum?.trim() || null,
+                role: role || 'student',
+                ...(trimmedPassword && { password: trimmedPassword }),
+            }
+
+            let headers = { 'Content-Type': 'application/json' }
+            try {
+                const current = auth.currentUser
+                if (current) {
+                    const token = await current.getIdToken(true)
+                    if (token) headers.Authorization = `Bearer ${token}`
+                }
+            } catch (t) {
+                console.warn('Failed to get token for update', t)
+            }
+
+            const response = await fetch(`${ADMIN_API_BASE_URL}/api/user/update`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(body),
+            })
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => null)
+                const message = err?.error || err?.message || 'Failed to update user'
+                setSnackbar?.({ open: true, message, severity: 'error' })
+                throw new Error(message)
+            }
+
+            resetForm()
+            onClose()
+            setSnackbar?.({ open: true, message: 'User updated', severity: 'success' })
+            onSuccess?.()
+        } catch (err) {
+            console.error('Failed to update user', err)
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const isSubmitDisabled = isEditMode
+        ? submitting
+        : submitting || !trimmedEmail || !isPasswordValid
+
     return (
         <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
             <DialogTitle>
-                Create User
+                {isEditMode ? 'Edit User' : 'Create User'}
                 <IconButton aria-label="close" onClick={handleClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>
-                    <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth required />
-                    <TextField label="Student Number" value={studentNumber} onChange={(e) => setStudentNumber(e.target.value)} fullWidth helperText="Optional: set internal UID (e.g. student number)" />
+                    <TextField
+                        label="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        fullWidth
+                        required={!isEditMode}
+                        disabled={isEditMode}
+                        helperText={isEditMode ? 'Email cannot be changed' : ''}
+                    />
+                    <TextField
+                        label="Student Number"
+                        value={studentNumber}
+                        onChange={(e) => setStudentNumber(e.target.value)}
+                        fullWidth
+                        disabled={isEditMode}
+                        helperText={isEditMode ? 'Student number cannot be changed' : 'Optional: set internal UID (e.g. student number)'}
+                    />
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                         <TextField label="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} fullWidth />
                         <TextField label="Middle Name" value={middleName} onChange={(e) => setMiddleName(e.target.value)} fullWidth />
@@ -449,23 +583,27 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHoo
                         <MenuItem value="admin">Admin</MenuItem>
                     </TextField>
                     <TextField
-                        label="Password"
+                        label={isEditMode ? 'New Password' : 'Password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         onBlur={() => setPasswordTouched(true)}
                         fullWidth
-                        required
+                        required={!isEditMode}
                         type="password"
                         error={passwordTouched && passwordTooShort}
                         helperText={
-                            passwordTouched && passwordTooShort
-                                ? `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
-                                : `Use at least ${MIN_PASSWORD_LENGTH} characters.`
+                            isEditMode
+                                ? (passwordTooShort ? `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` : 'Leave blank to keep current password')
+                                : (passwordTouched && passwordTooShort
+                                    ? `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
+                                    : `Use at least ${MIN_PASSWORD_LENGTH} characters.`)
                         }
                     />
-                    <Typography variant="caption" color="text.secondary">
-                        Use at least {MIN_PASSWORD_LENGTH} characters so the user can sign in and reset their credentials afterward.
-                    </Typography>
+                    {!isEditMode && (
+                        <Typography variant="caption" color="text.secondary">
+                            Use at least {MIN_PASSWORD_LENGTH} characters so the user can sign in and reset their credentials afterward.
+                        </Typography>
+                    )}
                 </Stack>
             </DialogContent>
             <DialogActions>
@@ -473,13 +611,9 @@ function AddStudentDialog({ openStateHook, onAdded, fetchUsers, snackbarStateHoo
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
-                    disabled={
-                        submitting
-                        || !trimmedEmail
-                        || !isPasswordValid
-                    }
+                    disabled={isSubmitDisabled}
                 >
-                    {submitting ? 'Creating…' : 'Create User'}
+                    {submitting ? (isEditMode ? 'Updating…' : 'Creating…') : (isEditMode ? 'Update User' : 'Create User')}
                 </Button>
             </DialogActions>
         </Dialog>

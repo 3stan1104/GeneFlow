@@ -127,7 +127,7 @@ function StudentsPage() {
     return (
         <Stack spacing={4}>
             <Typography variant="h4" fontWeight={700}>
-                Student Play Time
+                My Students
             </Typography>
 
             {error && <Alert severity="error">{error}</Alert>}
