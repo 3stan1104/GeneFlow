@@ -250,6 +250,14 @@ function UsersPage() {
 
     useEffect(() => {
         fetchUsers()
+
+        // Set up polling for real-time updates every 10 seconds
+        const pollInterval = setInterval(() => {
+            fetchUsers()
+        }, 10000)
+
+        // Cleanup interval on unmount
+        return () => clearInterval(pollInterval)
     }, [fetchUsers])
 
     return (

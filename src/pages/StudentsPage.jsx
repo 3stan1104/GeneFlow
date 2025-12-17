@@ -3,7 +3,7 @@ import {
     Alert, Box, Card, CardContent,
     Stack, Typography, Grid, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton, Skeleton
 } from '@mui/material'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, onSnapshot } from 'firebase/firestore'
 import SchoolIcon from '@mui/icons-material/School'
 import ScienceIcon from '@mui/icons-material/Science'
 import HealingIcon from '@mui/icons-material/Healing'
@@ -24,21 +24,33 @@ function StudentsPage() {
     const [sortOrder, setSortOrder] = useState('desc')
 
     useEffect(() => {
-        const fetchStudents = async () => {
-            try {
-                const snapshot = await getDocs(collection(db, 'students'))
-                const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-                data.sort((a, b) => getPlayTimeMinutes(b) - getPlayTimeMinutes(a))
-                setStudents(data)
-            } catch (err) {
+        setLoading(true)
+
+        // Set up real-time listener
+        const unsubscribe = onSnapshot(
+            collection(db, 'students'),
+            (snapshot) => {
+                try {
+                    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+                    data.sort((a, b) => getPlayTimeMinutes(b) - getPlayTimeMinutes(a))
+                    setStudents(data)
+                    setError('')
+                } catch (err) {
+                    console.error('Failed to process students data', err)
+                    setError('Unable to process student data.')
+                } finally {
+                    setLoading(false)
+                }
+            },
+            (err) => {
                 console.error('Failed to load students', err)
                 setError('Unable to fetch student play time right now.')
-            } finally {
                 setLoading(false)
             }
-        }
+        )
 
-        fetchStudents()
+        // Cleanup listener on unmount
+        return () => unsubscribe()
     }, [])
 
     // Get unique sections for filter
