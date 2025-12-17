@@ -38,7 +38,7 @@ export default function StudentProgressCard({ student }) {
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 3,
-                transition: 'all 0.2s ease-in-out',
+                transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                 '&:hover': {
                     boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                     borderColor: 'primary.light',

@@ -8,7 +8,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
-import { signInWithEmailAndPassword, getIdTokenResult, signOut } from 'firebase/auth'
+import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebase'
 
 function LoginPage({ onLoginSuccess, mode = 'light', onToggleMode }) {
@@ -28,22 +28,7 @@ function LoginPage({ onLoginSuccess, mode = 'light', onToggleMode }) {
         try {
             const credentials = await signInWithEmailAndPassword(auth, email.trim(), password)
             const user = credentials.user
-
-            // Refresh the ID token and inspect custom claims to ensure only admins can sign in
-            const idTokenResult = await getIdTokenResult(user, true)
-            const role = idTokenResult?.claims?.role
-
-            if (role !== 'admin') {
-                // Not an admin: sign out immediately and show an access denied message
-                try {
-                    await signOut(auth)
-                } catch (e) {
-                    // ignore signOut errors
-                }
-                setError('Access denied. This portal is for administrative users only.')
-                return
-            }
-
+            // Role checking is handled by App.jsx - non-admins will see UnauthorizedPage
             onLoginSuccess(user)
         } catch (err) {
             setError(err.message ?? 'Unable to login with the provided credentials.')

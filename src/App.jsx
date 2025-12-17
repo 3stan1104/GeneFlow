@@ -15,6 +15,7 @@ import { signOut } from 'firebase/auth'
 import LoginPage from './pages/LoginPage'
 import StudentsPage from './pages/StudentsPage'
 import UsersPage from './pages/UsersPage'
+import UnauthorizedPage from './pages/UnauthorizedPage'
 import { auth } from './firebase'
 import { useSession } from './context/SessionContext'
 
@@ -47,6 +48,7 @@ function App() {
   const theme = useMemo(
     () =>
       createTheme({
+        cssVariables: true,
         palette: {
           mode: themeMode,
           primary: { main: '#1A73E8' },
@@ -122,6 +124,8 @@ function App() {
         </Box>
       ) : !user ? (
         <LoginPage onLoginSuccess={handleLoginSuccess} mode={themeMode} onToggleMode={toggleThemeMode} />
+      ) : user.role !== 'admin' ? (
+        <UnauthorizedPage onGoHome={handleLogout} />
       ) : (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
           <AppBar

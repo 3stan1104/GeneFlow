@@ -25,12 +25,17 @@ export function SessionProvider({ children }) {
     }, [themeMode])
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
+                // Get ID token to check user role
+                const idTokenResult = await firebaseUser.getIdTokenResult()
+                const role = idTokenResult?.claims?.role || null
+
                 const payload = {
                     uid: firebaseUser.uid,
                     email: firebaseUser.email,
                     displayName: firebaseUser.displayName,
+                    role,
                 }
                 setUser(payload)
                 localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(payload))

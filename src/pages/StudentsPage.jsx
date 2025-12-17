@@ -249,11 +249,9 @@ function StudentsPage() {
                 >
                     <ToggleButton value="desc">
                         <ArrowDownwardIcon fontSize="small" sx={{ mr: 0.5 }} />
-                        High to Low
                     </ToggleButton>
                     <ToggleButton value="asc">
                         <ArrowUpwardIcon fontSize="small" sx={{ mr: 0.5 }} />
-                        Low to High
                     </ToggleButton>
                 </ToggleButtonGroup>
 
@@ -266,7 +264,10 @@ function StudentsPage() {
             <Box
                 sx={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gridTemplateColumns: {
+                        xs: 'repeat(2, 1fr)',
+                        md: 'repeat(3, 1fr)'
+                    },
                     gap: 2,
                     width: '100%'
                 }}
