@@ -43,10 +43,33 @@ function parseDateTime(day, month, year, time) {
 }
 
 function getRandomDateInRange(startDate, endDate) {
-    const startTime = startDate.getTime()
-    const endTime = endDate.getTime()
-    const randomTime = startTime + Math.random() * (endTime - startTime)
-    return new Date(randomTime)
+    // Get the start and end hours/minutes
+    const startHours = startDate.getHours()
+    const startMinutes = startDate.getMinutes()
+    const endHours = endDate.getHours()
+    const endMinutes = endDate.getMinutes()
+
+    // Calculate the number of days in the range (inclusive)
+    const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
+    const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate())
+    const daysDiff = Math.floor((endDay - startDay) / (1000 * 60 * 60 * 24))
+
+    // Pick a random day within the range
+    const randomDayOffset = Math.floor(Math.random() * (daysDiff + 1))
+    const randomDay = new Date(startDay)
+    randomDay.setDate(randomDay.getDate() + randomDayOffset)
+
+    // Calculate random time within the daily time window (startTime to endTime)
+    const startTimeMinutes = startHours * 60 + startMinutes
+    const endTimeMinutes = endHours * 60 + endMinutes
+    const randomTimeMinutes = startTimeMinutes + Math.floor(Math.random() * (endTimeMinutes - startTimeMinutes + 1))
+
+    const hours = Math.floor(randomTimeMinutes / 60)
+    const minutes = randomTimeMinutes % 60
+
+    randomDay.setHours(hours, minutes, Math.floor(Math.random() * 60), 0)
+
+    return randomDay
 }
 
 function formatDate(date) {

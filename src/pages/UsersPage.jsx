@@ -10,7 +10,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import LockResetIcon from '@mui/icons-material/LockReset'
-import { DataGrid, showToolbar } from '@mui/x-data-grid'
+import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 const ADMIN_API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'https://geneflow-letran.vercel.app'
 const MIN_PASSWORD_LENGTH = 6
 const SECTION_OPTIONS = ['Harvey', 'Heisenberg', 'Fermat', 'Ampere']
@@ -283,7 +283,7 @@ function UsersPage() {
                     disableRowSelectionOnClick
                     pageSizeOptions={[5, 10, 25]}
                     initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-                    slots={{ showToolbar }}
+                    slots={{ toolbar: GridToolbar }}
                     slotProps={{ toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 300 } } }}
                     sx={{ width: '100%' }}
                 />

@@ -47,7 +47,7 @@ function generateRandomMutations(maxCured = 10, maxFailed = 10) {
  * @param {number} maxCured - Maximum cured count
  * @param {number} maxFailed - Maximum failed count
  */
-async function generateRandomMutationsForAllStudents(maxCured = 50, maxFailed = 20) {
+async function generateRandomMutationsForAllStudents(maxCured = 10, maxFailed = 10) {
     const studentsSnapshot = await db.collection('students').get()
 
     if (studentsSnapshot.empty) {
@@ -65,7 +65,11 @@ async function generateRandomMutationsForAllStudents(maxCured = 50, maxFailed = 
     for (const doc of studentsSnapshot.docs) {
         const mutations = generateRandomMutations(maxCured, maxFailed)
 
-        batch.update(doc.ref, { mutations })
+        // Use dot notation to explicitly overwrite cured and failed values
+        batch.update(doc.ref, {
+            'mutations.cured': mutations.cured,
+            'mutations.failed': mutations.failed,
+        })
         writesInBatch += 1
         updatedDocuments += 1
         console.log(`Queued mutations for student ${doc.id}: cured=${mutations.cured}, failed=${mutations.failed}`)
@@ -88,7 +92,7 @@ async function generateRandomMutationsForAllStudents(maxCured = 50, maxFailed = 
 /**
  * Generate a single random mutations object and print it (for testing)
  */
-function testRandomMutations(maxCured = 50, maxFailed = 20) {
+function testRandomMutations(maxCured = 10, maxFailed = 10) {
     console.log('\n--- Test Random Mutations ---')
     for (let i = 0; i < 5; i++) {
         const mutations = generateRandomMutations(maxCured, maxFailed)
@@ -103,14 +107,14 @@ const args = process.argv.slice(2)
 let maxCured = 50
 const maxCuredArg = args.find(arg => arg.startsWith('--max-cured='))
 if (maxCuredArg) {
-    maxCured = parseInt(maxCuredArg.split('=')[1], 10) || 50
+    maxCured = parseInt(maxCuredArg.split('=')[1], 10) || 10
 }
 
 // Parse max failed from --max-failed=20 format
 let maxFailed = 20
 const maxFailedArg = args.find(arg => arg.startsWith('--max-failed='))
 if (maxFailedArg) {
-    maxFailed = parseInt(maxFailedArg.split('=')[1], 10) || 20
+    maxFailed = parseInt(maxFailedArg.split('=')[1], 10) || 10
 }
 
 if (args.includes('--test')) {
