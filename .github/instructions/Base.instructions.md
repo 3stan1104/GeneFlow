@@ -36,6 +36,10 @@ character: { (the code for each body part is defined in data/defaults.json)
     left: "",
     right: ""
   },
+  hand: {
+    left: "",
+    right: ""
+  },
   leg: {
     left: "",
     right: ""
