@@ -1,5 +1,6 @@
 import { handleCors } from '../_lib/cors.js'
 import { getAdminAuth, verifyAuth, getAdminFirestore } from '../_lib/auth.js'
+import defaults from '../../data/defaults.json' assert { type: 'json' }
 
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -136,23 +137,27 @@ export default async function handler(req, res) {
             }
         }
 
-        // If the created user is a student, create a minimal Firestore student document
+        // If the created user is a student, create a Firestore student document with full schema
         if (role === 'student') {
             try {
                 const db = getAdminFirestore()
+
+                // Use defaults from data/defaults.json
+                const defaultCharacter = JSON.parse(JSON.stringify(defaults.character))
+                const defaultStudent = JSON.parse(JSON.stringify(defaults.student))
+
                 await db.doc(`students/${userRecord.uid}`).set({
+                    ...defaultStudent,
                     id: userRecord.uid,
-                    studentNumber: userRecord.uid,
-                    playTimeMinutes: 0,
-                    score: 0,
-                    tutorialCompleted: false,
+                    curriculum: curriculum || defaultStudent.curriculum,
                     name: {
-                        first: firstName || null,
-                        middle: middleName || null,
-                        last: lastName || null,
+                        first: firstName || '',
+                        middle: middleName || '',
+                        last: lastName || '',
                     },
-                    section: section || null,
-                    curriculum: curriculum || null,
+                    section: section || defaultStudent.section,
+                    character: defaultCharacter,
+                    studentNumber: userRecord.uid,
                 })
             } catch (fsErr) {
                 console.error('Failed to create Firestore student document for user', userRecord.uid, fsErr)

@@ -1,0 +1,144 @@
+{
+    "head": {
+        "options": [
+            "headTemplate"
+        ],
+        "mutations": [
+            "headJaw",
+            "headHairy",
+            "headAlien"
+        ],
+        "genderSensitive": false
+    },
+    "ears": {
+        "options": [
+            "earsTemplate"
+        ],
+        "mutations": [
+            "earsDog",
+            "earsElf",
+            "earsAlien"
+        ],
+        "genderSensitive": false
+    },
+    "eyesMouth": {
+        "male": [
+            "maleEyesBrown",
+            "maleEyesBlue",
+            "maleEyesGreen"
+        ],
+        "female": [
+            "femaleEyesBrown",
+            "femaleEyesBlue",
+            "femaleEyesGreen"
+        ],
+        "genderSensitive": true,
+        "hasMutations": false
+    },
+    "hair": {
+        "male": [
+            "maleHairBrown",
+            "maleHairBlonde",
+            "maleHairRed"
+        ],
+        "female": [
+            "femaleHairBrown",
+            "femaleHairBlonde",
+            "femaleHairRed"
+        ],
+        "genderSensitive": true,
+        "hasMutations": false
+    },
+    "torso": {
+        "options": [
+            "torsoTemplate"
+        ],
+        "mutations": [
+            "torsoFeathers",
+            "torsoMonkey",
+            "torsoAlien"
+        ],
+        "genderSensitive": false
+    },
+    "armLeft": {
+        "options": [
+            "armLeftTemplate"
+        ],
+        "mutations": [
+            "armLeftGoblin",
+            "armLeftDragon",
+            "armLeftAlien"
+        ],
+        "genderSensitive": false
+    },
+    "armRight": {
+        "options": [
+            "armRightTemplate"
+        ],
+        "mutations": [
+            "armRightGoblin",
+            "armRightDragon",
+            "armRightAlien"
+        ],
+        "genderSensitive": false
+    },
+    "legLeft": {
+        "options": [
+            "legLeftTemplate"
+        ],
+        "mutations": [
+            "legLeftChicken",
+            "legLeftDuck",
+            "legLeftAlien"
+        ],
+        "genderSensitive": false
+    },
+    "legRight": {
+        "options": [
+            "legRightTemplate"
+        ],
+        "mutations": [
+            "legRightChicken",
+            "legRightDuck",
+            "legRightAlien"
+        ],
+        "genderSensitive": false
+    },
+    "handLeft": {
+        "options": [
+            "handLeftTemplate"
+        ],
+        "mutations": [
+            "handLeftPaw",
+            "handLeftGoblin",
+            "handLeftAlien"
+        ],
+        "genderSensitive": false
+    },
+    "handRight": {
+        "options": [
+            "handRightTemplate"
+        ],
+        "mutations": [
+            "handRightPaw",
+            "handRightGoblin",
+            "handRightAlien"
+        ],
+        "genderSensitive": false
+    },
+    "genders": [
+        "Male",
+        "Female"
+    ],
+    "mutatableParts": [
+        "head",
+        "ears",
+        "torso",
+        "armLeft",
+        "armRight",
+        "legLeft",
+        "legRight",
+        "handLeft",
+        "handRight"
+    ]
+}

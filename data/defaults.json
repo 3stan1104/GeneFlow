@@ -1,0 +1,43 @@
+{
+    "character": {
+        "gender": "",
+        "mutations": [],
+        "head": "headTemplate",
+        "eyesMouth": "",
+        "ears": "",
+        "hair": "",
+        "torso": "torsoTemplate",
+        "arm": {
+            "left": "armLeftTemplate",
+            "right": "armRightTemplate"
+        },
+        "hand": {
+            "left": "handLeftTemplate",
+            "right": "handRightTemplate"
+        },
+        "leg": {
+            "left": "legLeftTemplate",
+            "right": "legRightTemplate"
+        },
+        "bank": []
+    },
+    "student": {
+        "curriculum": "",
+        "lastPlayedAt": null,
+        "name": {
+            "first": "",
+            "middle": "",
+            "last": ""
+        },
+        "playTimeMinutes": 0,
+        "mutations": {
+            "cured": 0,
+            "failed": 0
+        },
+        "section": "",
+        "genemeter": 0,
+        "stable": null,
+        "studentNumber": "",
+        "tutorialCompleted": false
+    }
+}

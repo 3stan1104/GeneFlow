@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
     Alert, Box, Card, CardContent, CircularProgress,
-    Stack, Typography, Grid
+    Stack, Typography, Grid, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton
 } from '@mui/material'
 import { collection, getDocs } from 'firebase/firestore'
 import SchoolIcon from '@mui/icons-material/School'
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
+import ScienceIcon from '@mui/icons-material/Science'
+import HealingIcon from '@mui/icons-material/Healing'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 import StudentProgressCard from '../components/StudentProgressCard'
 import { db } from '../firebase'
 
@@ -14,6 +17,9 @@ function StudentsPage() {
     const [students, setStudents] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [sectionFilter, setSectionFilter] = useState('all')
+    const [sortBy, setSortBy] = useState('playTime')
+    const [sortOrder, setSortOrder] = useState('desc')
 
     useEffect(() => {
         const fetchStudents = async () => {
@@ -33,15 +39,58 @@ function StudentsPage() {
         fetchStudents()
     }, [])
 
+    // Get unique sections for filter
+    const sections = useMemo(() => {
+        const sectionSet = new Set(students.map(s => s.section).filter(Boolean))
+        return ['all', ...Array.from(sectionSet).sort()]
+    }, [students])
+
+    // Filter and sort students
+    const filteredStudents = useMemo(() => {
+        let result = [...students]
+
+        // Filter by section
+        if (sectionFilter !== 'all') {
+            result = result.filter(s => s.section === sectionFilter)
+        }
+
+        // Sort
+        result.sort((a, b) => {
+            let aVal, bVal
+            switch (sortBy) {
+                case 'playTime':
+                    aVal = getPlayTimeMinutes(a)
+                    bVal = getPlayTimeMinutes(b)
+                    break
+                case 'cured':
+                    aVal = a.mutations?.cured ?? 0
+                    bVal = b.mutations?.cured ?? 0
+                    break
+                case 'failed':
+                    aVal = a.mutations?.failed ?? 0
+                    bVal = b.mutations?.failed ?? 0
+                    break
+                default:
+                    aVal = getPlayTimeMinutes(a)
+                    bVal = getPlayTimeMinutes(b)
+            }
+            return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
+        })
+
+        return result
+    }, [students, sectionFilter, sortBy, sortOrder])
+
     const stats = useMemo(() => {
         if (!students.length) {
-            return { averagePlayTime: 0, averageScore: 0 }
+            return { averagePlayTime: 0, totalCured: 0, totalFailed: 0 }
         }
         const totalPlayTime = students.reduce((sum, student) => sum + getPlayTimeMinutes(student), 0)
-        const totalScore = students.reduce((sum, student) => sum + (student.score ?? 0), 0)
+        const totalCured = students.reduce((sum, student) => sum + (student.mutations?.cured ?? 0), 0)
+        const totalFailed = students.reduce((sum, student) => sum + (student.mutations?.failed ?? 0), 0)
         return {
             averagePlayTime: Math.round(totalPlayTime / students.length),
-            averageScore: Math.round(totalScore / students.length),
+            totalCured,
+            totalFailed,
         }
     }, [students])
 
@@ -84,7 +133,7 @@ function StudentsPage() {
             {error && <Alert severity="error">{error}</Alert>}
 
             <Grid container spacing={3}>
-                <Grid xs={12} md={4}>
+                <Grid xs={12} sm={6} md={3}>
                     <Card sx={{ height: '100%' }}>
                         <CardContent>
                             <Stack direction="row" spacing={2} alignItems="center">
@@ -103,16 +152,16 @@ function StudentsPage() {
                         </CardContent>
                     </Card>
                 </Grid>
-                <Grid xs={12} md={4}>
+                <Grid xs={12} sm={6} md={3}>
                     <Card sx={{ height: '100%' }}>
                         <CardContent>
                             <Stack direction="row" spacing={2} alignItems="center">
-                                <Box sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', borderRadius: '50%', p: 1.25, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
+                                <Box sx={{ bgcolor: 'info.main', color: 'info.contrastText', borderRadius: '50%', p: 1.25, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
                                     <TrendingUpIcon fontSize="medium" />
                                 </Box>
                                 <Box>
                                     <Typography variant="overline" color="text.secondary">
-                                        Average Play Time
+                                        Avg Play Time
                                     </Typography>
                                     <Typography variant="h5" fontWeight={700}>
                                         {formatPlayTime(stats.averagePlayTime)}
@@ -122,19 +171,38 @@ function StudentsPage() {
                         </CardContent>
                     </Card>
                 </Grid>
-                <Grid xs={12} md={4}>
+                <Grid xs={12} sm={6} md={3}>
                     <Card sx={{ height: '100%' }}>
                         <CardContent>
                             <Stack direction="row" spacing={2} alignItems="center">
-                                <Box sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', borderRadius: '50%', p: 1.25, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
-                                    <EmojiEventsIcon fontSize="medium" />
+                                <Box sx={{ bgcolor: 'success.main', color: 'success.contrastText', borderRadius: '50%', p: 1.25, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
+                                    <HealingIcon fontSize="medium" />
                                 </Box>
                                 <Box>
                                     <Typography variant="overline" color="text.secondary">
-                                        Average Score
+                                        Total Cured
                                     </Typography>
-                                    <Typography variant="h5" fontWeight={700}>
-                                        {stats.averageScore}
+                                    <Typography variant="h5" fontWeight={700} color="success.main">
+                                        {stats.totalCured}
+                                    </Typography>
+                                </Box>
+                            </Stack>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid xs={12} sm={6} md={3}>
+                    <Card sx={{ height: '100%' }}>
+                        <CardContent>
+                            <Stack direction="row" spacing={2} alignItems="center">
+                                <Box sx={{ bgcolor: 'error.main', color: 'error.contrastText', borderRadius: '50%', p: 1.25, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
+                                    <ScienceIcon fontSize="medium" />
+                                </Box>
+                                <Box>
+                                    <Typography variant="overline" color="text.secondary">
+                                        Total Failed
+                                    </Typography>
+                                    <Typography variant="h5" fontWeight={700} color="error.main">
+                                        {stats.totalFailed}
                                     </Typography>
                                 </Box>
                             </Stack>
@@ -143,28 +211,72 @@ function StudentsPage() {
                 </Grid>
             </Grid>
 
-            <Stack spacing={2}>
-                <Typography variant="h6" fontWeight={700}>
-                    Play Time Overview
+            {/* Filters */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }} flexWrap="wrap">
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                    <InputLabel>Section</InputLabel>
+                    <Select
+                        value={sectionFilter}
+                        label="Section"
+                        onChange={(e) => setSectionFilter(e.target.value)}
+                    >
+                        {sections.map((section) => (
+                            <MenuItem key={section} value={section}>
+                                {section === 'all' ? 'All Sections' : section}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                    <InputLabel>Sort By</InputLabel>
+                    <Select
+                        value={sortBy}
+                        label="Sort By"
+                        onChange={(e) => setSortBy(e.target.value)}
+                    >
+                        <MenuItem value="playTime">Play Time</MenuItem>
+                        <MenuItem value="cured">Cured</MenuItem>
+                        <MenuItem value="failed">Failed</MenuItem>
+                    </Select>
+                </FormControl>
+
+                <ToggleButtonGroup
+                    value={sortOrder}
+                    exclusive
+                    onChange={(e, newOrder) => newOrder && setSortOrder(newOrder)}
+                    size="small"
+                >
+                    <ToggleButton value="desc">
+                        <ArrowDownwardIcon fontSize="small" sx={{ mr: 0.5 }} />
+                        High to Low
+                    </ToggleButton>
+                    <ToggleButton value="asc">
+                        <ArrowUpwardIcon fontSize="small" sx={{ mr: 0.5 }} />
+                        Low to High
+                    </ToggleButton>
+                </ToggleButtonGroup>
+
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto' }}>
+                    Showing {filteredStudents.length} of {students.length} students
                 </Typography>
-                <Grid container spacing={2} alignItems="stretch">
-                    {students.map((student) => {
-                        const nameObj = student.name || {}
-                        const fullName = [nameObj.first, nameObj.middle, nameObj.last].filter(Boolean).join(' ').trim() || student.name || 'Unnamed'
-                        const studentNumber = student.studentNumber || student.id
-                        return (
-                            <Grid key={student.id} xs={12} sm={6} md={4} sx={{ display: 'flex' }}>
-                                <StudentProgressCard
-                                    name={fullName}
-                                    studentNumber={studentNumber}
-                                    score={student.score}
-                                    playTimeMinutes={getPlayTimeMinutes(student)}
-                                />
-                            </Grid>
-                        )
-                    })}
-                </Grid>
             </Stack>
+
+            {/* Student Cards */}
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: 2,
+                    width: '100%'
+                }}
+            >
+                {filteredStudents.map((student) => (
+                    <Box key={student.id} sx={{ display: 'flex' }}>
+                        <StudentProgressCard student={student} />
+                    </Box>
+                ))}
+            </Box>
         </Stack>
     )
 }

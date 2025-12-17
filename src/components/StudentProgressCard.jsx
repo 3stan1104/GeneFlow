@@ -1,95 +1,143 @@
 import React from 'react'
-import { Card, CardContent, Stack, Typography, Avatar, Box } from '@mui/material'
+import { Card, CardContent, Stack, Typography, Avatar, Box, Chip, Divider } from '@mui/material'
+import PersonIcon from '@mui/icons-material/Person'
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import ScienceIcon from '@mui/icons-material/Science'
+import HealingIcon from '@mui/icons-material/Healing'
 import SchoolIcon from '@mui/icons-material/School'
-import AccessTimeFilledIcon from '@mui/icons-material/AccessTimeFilled'
 
-export default function StudentProgressCard({ name = 'Unnamed', studentNumber = null, score = null, playTimeMinutes = 0 }) {
-    const displayScore = typeof score === 'number' ? score : 'N/A'
+export default function StudentProgressCard({ student }) {
+    const {
+        name = {},
+        id = 'N/A',
+        curriculum = 'N/A',
+        section = 'N/A',
+        playTimeMinutes = 0,
+        mutations = { cured: 0, occurred: 0 }
+    } = student || {}
+
+    // Format name
+    const firstName = name?.first || ''
+    const middleName = name?.middle || ''
+    const lastName = name?.last || ''
+    const middleInitial = middleName ? `${middleName.trim()[0]}.` : ''
+    const displayName = lastName || 'Unnamed'
+    const subName = [firstName, middleInitial].filter(Boolean).join(' ')
+
+    // Format play time
     const formattedPlayTime = formatPlayTime(playTimeMinutes)
 
-    // Normalize name parts: support either an object { first, middle, last }
-    // or a single string like "First Middle Last"
-    let firstName = ''
-    let middleName = ''
-    let lastName = ''
-    if (name && typeof name === 'object') {
-        firstName = name.first || ''
-        middleName = name.middle || ''
-        lastName = name.last || ''
-    } else if (typeof name === 'string') {
-        const parts = name.trim().split(/\s+/)
-        if (parts.length === 1) {
-            lastName = parts[0]
-        } else {
-            lastName = parts.slice(-1).join(' ')
-            firstName = parts.slice(0, -1).join(' ')
-            // if there's more than one first-part, treat middle as later part
-            const fm = firstName.split(/\s+/)
-            if (fm.length > 1) {
-                middleName = fm.slice(1).join(' ')
-                firstName = fm[0]
-            }
-        }
-    }
-    const middleInitial = middleName ? `${middleName.trim()[0]}.` : ''
-
     return (
-        <Card elevation={2} sx={{ height: 180, width: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', p: 2, gap: 0.5 }}>
-                <Stack direction="row" spacing={1.2} alignItems="center">
-                    <Avatar sx={{ bgcolor: 'primary.main', width: 48, height: 48, mt: 0.5 }}>
-                        <SchoolIcon />
+        <Card
+            elevation={0}
+            sx={{
+                height: '100%',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 3,
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                    borderColor: 'primary.light',
+                    transform: 'translateY(-2px)'
+                }
+            }}
+        >
+            <CardContent sx={{ p: 2.5, pb: '16px !important' }}>
+                {/* Header Section */}
+                <Stack direction="row" spacing={2} alignItems="flex-start" mb={2}>
+                    <Avatar
+                        sx={{
+                            bgcolor: 'primary.main',
+                            width: 52,
+                            height: 52,
+                            fontSize: '1.25rem',
+                            fontWeight: 700
+                        }}
+                    >
+                        {firstName?.[0]?.toUpperCase() || lastName?.[0]?.toUpperCase() || <PersonIcon />}
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="h6" fontWeight={700} sx={{
-                            whiteSpace: 'normal',
-                            overflowWrap: 'break-word',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                        }}>
-                            {lastName ? `${lastName}` : 'Unnamed'}
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            sx={{
+                                lineHeight: 1.3,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            {displayName}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, fontWeight: 700, lineHeight: 1 }}>
-                            {(firstName || middleInitial) ? `${firstName}${firstName && middleInitial ? ' ' : ''}${middleInitial}` : ''}
+                        {subName && (
+                            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.3 }}>
+                                {subName}
+                            </Typography>
+                        )}
+                        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.25 }}>
+                            {id}
                         </Typography>
-                        {/* ID on its own row */}
                     </Box>
+                </Stack>
 
+                {/* Tags */}
+                <Stack direction="row" spacing={1} mb={2} flexWrap="wrap" useFlexGap>
+                    <Chip
+                        icon={<SchoolIcon sx={{ fontSize: 14 }} />}
+                        label={curriculum}
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontSize: '0.7rem', height: 24 }}
+                    />
+                    <Chip
+                        label={section}
+                        size="small"
+                        sx={{ fontSize: '0.7rem', height: 24, bgcolor: 'action.hover' }}
+                    />
                 </Stack>
-                <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" width="100%" sx={{ mt: 1 }}>
-                    <Box sx={{ textAlign: 'left', minWidth: 72 }}>
-                        <Typography variant="h6" fontWeight={700}>
-                            {studentNumber ?? 'N/A'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                            Student Number
-                        </Typography>
-                    </Box>
-                    <Box sx={{ textAlign: 'left', minWidth: 72 }}>
-                        <Typography variant="h6" fontWeight={700}>
-                            {displayScore}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                            Score
-                        </Typography>
-                    </Box>
-                </Stack>
-                <Box sx={{ mt: 1.5 }}>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Box sx={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'action.hover' }}>
-                            <AccessTimeFilledIcon color="action" fontSize="small" />
-                        </Box>
-                        <Box>
-                            <Typography variant="subtitle1" fontWeight={700}>
+
+                <Divider sx={{ mb: 2 }} />
+
+                {/* Stats Grid */}
+                <Stack direction="row" spacing={1} justifyContent="space-between">
+                    <Box sx={{ textAlign: 'center', flex: 1 }}>
+                        <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
+                            <AccessTimeIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                            <Typography variant="body2" fontWeight={700}>
                                 {formattedPlayTime}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                                Play Time
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                            Play Time
+                        </Typography>
+                    </Box>
+                    <Box sx={{ textAlign: 'center', flex: 1 }}>
+                        <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
+                            <HealingIcon sx={{ fontSize: 14, color: 'success.main' }} />
+                            <Typography variant="body2" fontWeight={700} color="success.main">
+                                {mutations?.cured || 0}
                             </Typography>
-                        </Box>
-                    </Stack>
-                </Box>
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                            Cured
+                        </Typography>
+                    </Box>
+                    <Box sx={{ textAlign: 'center', flex: 1 }}>
+                        <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
+                            <ScienceIcon sx={{ fontSize: 14, color: 'error.main' }} />
+                            <Typography variant="body2" fontWeight={700} color="error.main">
+                                {mutations?.failed || 0}
+                            </Typography>
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                            Failed
+                        </Typography>
+                    </Box>
+                </Stack>
             </CardContent>
         </Card>
     )
