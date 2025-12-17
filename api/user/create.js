@@ -1,6 +1,6 @@
 import { handleCors } from '../_lib/cors.js'
 import { getAdminAuth, verifyAuth, getAdminFirestore } from '../_lib/auth.js'
-import defaults from '../../data/defaults.json' assert { type: 'json' }
+import defaults from '../../data/defaults.json' with { type: 'json' }
 
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)

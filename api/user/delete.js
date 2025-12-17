@@ -38,7 +38,7 @@ export default async function handler(req, res) {
             do {
                 const page = await auth.listUsers(1000, nextPageToken)
                 for (const u of page.users) {
-                    if (u.customClaims && u.customClaims.role === 'admin') {
+                    if (u.customClaims && u.customClaims.role===  'admin') {
                         adminCount += 1
                         if (adminCount > 1) break
                     }
