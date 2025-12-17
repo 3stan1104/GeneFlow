@@ -22,15 +22,11 @@ mutations: {
   failed: 0
 },
 section:"",
-genemeter: 0-3
-mutations: {
-  cured: 0
-  occurred: 0
-},
-stable: Date (like shield, the timestamp where mutations won't occur)
+genemeter: 0-3,
+stable: Date, (like shield, mutations won't occur until the date passed)
 character: { (the code for each body part is defined in data/defaults.json)
-  gender: Male/Female (add hair if female)
-  mutations: []
+  gender: Male/Female, (add hair if female)
+  mutations: [],
   head: "",
   eyesMouth: "",
   ears: "",
