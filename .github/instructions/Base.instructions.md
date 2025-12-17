@@ -29,23 +29,23 @@ mutations: {
 },
 stable: Date (like shield, the timestamp where mutations won't occur)
 character: { (the code for each body part is defined in data/defaults.json)
-  Gender: Male/Female (add hair if female)
-Mutation: []
-  Head: {
-    Type: HE00
-    EyesMouth?: EM00
-    Ears: E00
-    Hair?: H00
-  },
-  Torso: T00,
-  Arm: {
-    Left: AL00
-    Right: AR00
-  },
-  Leg: {
-    Left: LL00
-    Right: LR00
-  },
-  Bank: [] (Add default hair default eyes, hair and eyes are stored in bank since they are the only ones customizable)
-}
+  gender: Male/Female (add hair if female)
+  mutations: []
+    head: {
+      type: HE00
+      eyesMouth?: EM00
+      ears: E00
+      hair?: H00
+    },
+    torso: T00,
+    arm: {
+      left: AL00
+      right: AR00
+    },
+    leg: {
+      left: LL00
+      right: LR00
+    },
+    bank: [] (Add default hair default eyes, hair and eyes are stored in bank since they are the only ones customizable)
+  }
 ```
